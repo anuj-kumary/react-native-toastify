@@ -1,5 +1,3 @@
-# Welcome to your Expo app 👋
-=======
 # React Native Awesome Toastify
 
 A beautiful and customizable toast notification component for React Native applications.
