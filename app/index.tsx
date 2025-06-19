@@ -1,4 +1,5 @@
-import { HomeScreen } from "@/src/screens/HomeScreen";
+import React from 'react';
+import { HomeScreen } from "../src/screens/HomeScreen";
 import { StyleSheet, Text, View } from "react-native";
 import { ToastProvider } from '../src/context/ToastContext';
 

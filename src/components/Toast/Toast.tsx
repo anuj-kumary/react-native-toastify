@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, View, StyleSheet, Animated, Dimensions } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -26,30 +25,33 @@ export const Toast: React.FC<ToastProps> = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
 
+  console.log('Toast: Component rendered with:', { message, type, position });
+
   const toastTypes = {
     success: {
       backgroundColor: '#4caf50',
-      icon: 'check-circle-outline',
+      indicator: '✓',
       iconColor: '#fff'
     },
     error: {
       backgroundColor: '#f44336',
-      icon: 'error-outline',
+      indicator: '✕',
       iconColor: '#fff'
     },
     warning: {
       backgroundColor: '#ff9800',
-      icon: 'warning-amber',
+      indicator: '⚠',
       iconColor: '#fff'
     },
     info: {
       backgroundColor: '#2196f3',
-      icon: 'info-outline',
+      indicator: 'ℹ',
       iconColor: '#fff'
     }
   };
 
   useEffect(() => {
+    console.log('Toast: useEffect triggered, starting animation');
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -64,6 +66,7 @@ export const Toast: React.FC<ToastProps> = ({
     ]).start();
 
     const timer = setTimeout(() => {
+      console.log('Toast: Timer expired, starting hide animation');
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -75,7 +78,10 @@ export const Toast: React.FC<ToastProps> = ({
           duration: 300,
           useNativeDriver: true,
         })
-      ]).start(() => onClose());
+      ]).start(() => {
+        console.log('Toast: Hide animation completed, calling onClose');
+        onClose();
+      });
     }, duration);
 
     return () => clearTimeout(timer);
@@ -96,13 +102,11 @@ export const Toast: React.FC<ToastProps> = ({
         },
         containerStyle
       ]}
+      pointerEvents="none"
     >
-      <MaterialIcons 
-        name={toastTypes[type].icon as keyof typeof MaterialIcons.glyphMap}
-        size={24}
-        color={toastTypes[type].iconColor}
-        style={styles.icon}
-      />
+      <Text style={[styles.indicator, { color: toastTypes[type].iconColor }]}>
+        {toastTypes[type].indicator}
+      </Text>
       <Text style={[styles.message, textStyle]}>{message}</Text>
     </Animated.View>
   );
@@ -122,10 +126,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    zIndex: 9999,
+    ...(Platform.OS === 'ios' ? {} : { zIndex: 9999 }),
   },
-  icon: {
+  indicator: {
     marginRight: 10,
+    fontSize: 16,
   },
   message: {
     color: 'white',

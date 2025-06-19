@@ -1,0 +1,57 @@
+# Source files (will be compiled to lib/)
+src/
+
+# Development files
+.vscode/
+.expo/
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+dist/
+build/
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage/
+
+# Configuration files
+.eslintrc*
+.prettierrc*
+jest.config.*
+babel.config.*
+metro.config.*
+
+# Documentation
+docs/
+
+# Examples
+example/
+examples/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Expo specific
+app.json
+app.config.*
+expo-env.d.ts
+assets/
+constants/
+app/ 
