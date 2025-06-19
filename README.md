@@ -1,6 +1,14 @@
-# React Native Awesome Toastify
+# React Native Toastify Expo
 
-A beautiful and customizable toast notification component for React Native applications.
+A beautiful and customizable toast notification component for React Native applications, built for Expo and React Native.
+
+## Demo
+
+### iOS
+![iOS Demo](https://asset.cloudinary.com/anujy0510/6040f3ec92d874efdc5d411b002e4219)
+
+### Android
+![Android Demo](https://asset.cloudinary.com/anujy0510/5c418b0ea59eca3ba4dbeb422d53d258)
 
 ## Features
 
@@ -15,9 +23,9 @@ A beautiful and customizable toast notification component for React Native appli
 ## Installation
 
 ```bash
-npm install react-native-awesome-toastify
+npm install react-native-toastify-expo
 # or
-yarn add react-native-awesome-toastify
+yarn add react-native-toastify-expo
 ```
 
 ## Quick Start
@@ -26,7 +34,7 @@ yarn add react-native-awesome-toastify
 
 ```jsx
 import React from 'react';
-import { ToastProvider } from 'react-native-awesome-toastify';
+import { ToastProvider } from 'react-native-toastify-expo';
 
 export default function App() {
   return (
@@ -42,7 +50,7 @@ export default function App() {
 ```jsx
 import React from 'react';
 import { View, Button } from 'react-native';
-import { useToast } from 'react-native-awesome-toastify';
+import { useToast } from 'react-native-toastify-expo';
 
 export const MyComponent = () => {
   const { showToast } = useToast();
@@ -69,7 +77,7 @@ export const MyComponent = () => {
 The ToastProvider component wraps your application and provides the toast context.
 
 ```jsx
-import { ToastProvider } from 'react-native-awesome-toastify';
+import { ToastProvider } from 'react-native-toastify-expo';
 
 <ToastProvider>
   <YourApp />
@@ -93,7 +101,7 @@ Shows a toast notification.
 ### Toast Types
 
 - `'success'` - Green background with checkmark icon
-- `'error'` - Red background with X icon  
+- `'error'` - Red background with X icon
 - `'warning'` - Orange background with warning icon
 - `'info'` - Blue background with info icon
 
@@ -130,7 +138,7 @@ interface ToastConfig {
 ### Basic Usage
 
 ```jsx
-import { useToast } from 'react-native-awesome-toastify';
+import { useToast } from 'react-native-toastify-expo';
 
 const MyComponent = () => {
   const { showToast } = useToast();
@@ -203,7 +211,6 @@ The toast component uses React Native's StyleSheet for styling. You can customiz
   - Error: `#f44336`
   - Warning: `#ff9800`
   - Info: `#2196f3`
-
 - **Text Color:** White
 - **Border Radius:** 8px
 - **Padding:** 15px
