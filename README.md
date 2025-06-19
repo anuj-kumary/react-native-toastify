@@ -2,13 +2,16 @@
 
 A beautiful and customizable toast notification component for React Native applications, built for Expo and React Native.
 
-## Demo
+### iOS Demo
 
-### iOS
-![iOS Demo](https://asset.cloudinary.com/anujy0510/6040f3ec92d874efdc5d411b002e4219)
+https://github.com/user-attachments/assets/82862979-f5db-4d84-8782-a32530a84542
 
-### Android
-![Android Demo](https://asset.cloudinary.com/anujy0510/5c418b0ea59eca3ba4dbeb422d53d258)
+### Android Demo
+
+
+https://github.com/user-attachments/assets/84b0eb72-7d81-4952-86f3-c0f7460922c6
+
+
 
 ## Features
 
