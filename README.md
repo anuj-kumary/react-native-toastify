@@ -1,4 +1,4 @@
-# React Native Toastify Expo
+# React Native Toastify
 
 A beautiful and customizable toast notification component for React Native applications, built for Expo and React Native.
 
@@ -15,13 +15,14 @@ https://github.com/user-attachments/assets/84b0eb72-7d81-4952-86f3-c0f7460922c6
 
 ## Features
 
-- 🎨 Multiple toast types (success, error, warning, info)
-- 📱 Fully customizable styles
-- 🔄 Smooth animations
-- 📍 Configurable positions (top, bottom)
-- ⚡ Easy to use
-- 🎯 TypeScript support
-- 📦 Zero dependencies (only React Native peer dependencies)
+- 🎨 **Fully Customizable**: Customize colors, icons, animations, and styling
+- 📱 **Cross-Platform**: Works on both iOS and Android
+- ⚡ **Smooth Animations**: Configurable animation duration and easing
+- 🎯 **Flexible Positioning**: Top or bottom positioning
+- 🔧 **Custom Toast Types**: Create your own toast types with custom colors and icons
+- 🎪 **Dynamic Styling**: Override any style property
+- 📦 **TypeScript Support**: Full TypeScript definitions included
+- 🚀 **Lightweight**: Minimal bundle size with no external dependencies
 
 ## Installation
 
@@ -73,66 +74,55 @@ export const MyComponent = () => {
 };
 ```
 
-## API Reference
+## Props
 
-### ToastProvider
+### Required Props
 
-The ToastProvider component wraps your application and provides the toast context.
+| Prop | Type | Description |
+|------|------|-------------|
+| `message` | `string` | The message to display in the toast |
+| `onClose` | `() => void` | Callback function called when toast is dismissed |
 
-```jsx
-import { ToastProvider } from 'react-native-toastify-expo';
+### Optional Props
 
-<ToastProvider>
-  <YourApp />
-</ToastProvider>
-```
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `ToastType` | `'info'` | Toast type: 'success', 'error', 'warning', 'info', or custom string |
+| `duration` | `number` | `3000` | Duration in milliseconds before auto-dismiss |
+| `position` | `'top' \| 'bottom'` | `'bottom'` | Position of the toast on screen |
+| `animationDuration` | `number` | `300` | Duration of show/hide animations |
+| `showIndicator` | `boolean` | `true` | Whether to show the icon indicator |
+| `borderRadius` | `number` | `8` | Border radius of the toast |
+| `padding` | `number` | `15` | Internal padding of the toast |
+| `margin` | `number` | `20` | Horizontal margin from screen edges |
+| `elevation` | `number` | `3` | Android elevation (shadow) |
+| `shadowColor` | `string` | `'#000'` | Shadow color for iOS |
+| `shadowOffset` | `{width: number, height: number}` | `{width: 0, height: 2}` | Shadow offset |
+| `shadowOpacity` | `number` | `0.25` | Shadow opacity |
+| `shadowRadius` | `number` | `3.84` | Shadow radius |
 
-### useToast Hook
+### Style Props
 
-Returns an object with the following method:
+| Prop | Type | Description |
+|------|------|-------------|
+| `textStyle` | `object` | Custom styles for the message text |
+| `containerStyle` | `object` | Custom styles for the toast container |
+| `indicatorStyle` | `object` | Custom styles for the icon indicator |
 
-#### `showToast(message: string | ToastConfig, type?: ToastType)`
+### Custom Toast Types
 
-Shows a toast notification.
+| Prop | Type | Description |
+|------|------|-------------|
+| `customToastTypes` | `Record<string, ToastTypeConfig>` | Custom toast type configurations |
 
-**Parameters:**
-- `message` (string | ToastConfig): The message to display or a configuration object
-- `type` (ToastType, optional): The type of toast ('success', 'error', 'warning', 'info')
+## ToastTypeConfig Interface
 
-**Returns:** void
-
-### Toast Types
-
-- `'success'` - Green background with checkmark icon
-- `'error'` - Red background with X icon
-- `'warning'` - Orange background with warning icon
-- `'info'` - Blue background with info icon
-
-### Toast Configuration
-
-You can customize the toast by passing a configuration object:
-
-```jsx
-showToast({
-  message: 'Custom Toast Message',
-  type: 'success',
-  duration: 5000, // Duration in milliseconds (default: 3000)
-  position: 'top', // 'top' or 'bottom' (default: 'bottom')
-  textStyle: { fontSize: 18, fontWeight: 'bold' },
-  containerStyle: { borderRadius: 12, marginHorizontal: 20 }
-});
-```
-
-### ToastConfig Interface
-
-```typescript
-interface ToastConfig {
-  message: string;
-  type?: 'success' | 'error' | 'warning' | 'info';
-  duration?: number;
-  position?: 'top' | 'bottom';
-  textStyle?: object;
-  containerStyle?: object;
+```tsx
+interface ToastTypeConfig {
+  backgroundColor: string;  // Background color of the toast
+  indicator: string;        // Icon/emoji to display
+  iconColor: string;        // Color of the indicator
+  textColor?: string;       // Color of the text (optional, defaults to iconColor)
 }
 ```
 
@@ -230,4 +220,16 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+If you encounter any issues or have questions, please open an issue on GitHub.

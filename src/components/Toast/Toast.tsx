@@ -31,22 +31,26 @@ export const Toast: React.FC<ToastProps> = ({
     success: {
       backgroundColor: '#4caf50',
       indicator: '✓',
-      iconColor: '#fff'
+      iconColor: '#fff',
+      textColor: '#fff'
     },
     error: {
       backgroundColor: '#f44336',
       indicator: '✕',
-      iconColor: '#fff'
+      iconColor: '#fff',
+      textColor: '#fff'
     },
     warning: {
       backgroundColor: '#ff9800',
       indicator: '⚠',
-      iconColor: '#fff'
+      iconColor: '#fff',
+      textColor: '#fff'
     },
     info: {
       backgroundColor: '#2196f3',
       indicator: 'ℹ',
-      iconColor: '#fff'
+      iconColor: '#fff',
+      textColor: '#fff'
     }
   };
 
