@@ -1,8 +1,8 @@
 {
   "name": "react-native-toastify-expo",
   "main": "expo-router/entry",
-  "version": "1.0.3",
-  "description": "A beautiful and customizable toast notification component for React Native applications",
+  "version": "1.0.5",
+  "description": "Customizable toast notifications for React Native using Expo",
   "types": "lib/index.d.ts",
   "files": [
     "lib",
@@ -27,12 +27,12 @@
     "react",
     "toastify"
   ],
-  "author": "Anuj Kumar Yadav",
+  "author": "Anujkumar Yadav",
   "license": "MIT",
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/anuj-kumary/react-native-toastify"
-  },
+  "type": "git",
+  "url": "https://github.com/anuj-kumary/react-native-toastify"
+},
   "bugs": {
     "url": "https://github.com/anuj-kumary/react-native-toastify/issues"
   },

@@ -1,9 +1,13 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, StatusBar, Platform } from 'react-native';
 import { Toast, ToastProps, ToastType } from '../components/Toast/Toast';
 
 export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'id'>> {
   message: string;
+  duration: number;
+  position: 'top' | 'bottom';
+  textStyle?: object;
+  containerStyle?: object;
 }
 
 interface ToastItem extends Omit<ToastProps, 'onClose'> {
@@ -12,7 +16,7 @@ interface ToastItem extends Omit<ToastProps, 'onClose'> {
 }
 
 type ToastContextType = {
-  showToast: (message: string | ToastConfig, type?: ToastType) => void;
+  showToast: (message: string | ToastConfig, type?: ToastType, duration?: number, position?: 'top' | 'bottom') => void;
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -55,28 +59,36 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [dismissQueue.length, isProcessing, processNextDismiss]);
 
-  const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType) => {
+  const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType, duration?: number, position?: 'top' | 'bottom') => {
     const id = Math.random().toString(36).substr(2, 9);
     const createdAt = Date.now();
-    console.log('ToastContext: showToast called with:', { messageOrConfig, type, id, createdAt });
+    console.log('ToastContext: showToast called with:', { messageOrConfig, type, duration, position, id, createdAt });
     
-    const newToast: ToastItem = typeof messageOrConfig === 'string' 
-      ? {
-          id,
-          message: messageOrConfig,
-          type: type || 'info',
-          duration: 3000,
-          position: 'bottom' as const,
-          createdAt
-        }
-      : {
-          id,
-          ...messageOrConfig,
-          type: messageOrConfig.type || type || 'info',
-          duration: messageOrConfig.duration || 3000,
-          position: messageOrConfig.position || 'bottom' as const,
-          createdAt
-        };
+    let newToast: ToastItem;
+    
+    if (typeof messageOrConfig === 'string') {
+      // Old API format: showToast(message, type, duration, position)
+      newToast = {
+        id,
+        message: messageOrConfig,
+        type: type || 'info',
+        duration: duration || 3000,
+        position: position || 'bottom',
+        createdAt
+      };
+    } else {
+      // New API format: showToast({ message, type, duration, position, textStyle, containerStyle })
+      newToast = {
+        id,
+        message: messageOrConfig.message,
+        type: messageOrConfig.type || type || 'info',
+        duration: messageOrConfig.duration || duration || 3000,
+        position: messageOrConfig.position || position || 'bottom',
+        textStyle: messageOrConfig.textStyle,
+        containerStyle: messageOrConfig.containerStyle,
+        createdAt
+      };
+    }
 
     // Add to visible toasts immediately
     setToasts((currentToasts) => {
@@ -117,20 +129,44 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
+  // Get status bar height for proper top positioning
+  const getStatusBarHeight = () => {
+    if (Platform.OS === 'ios') {
+      return StatusBar.currentHeight || 20; // Reduced iOS status bar height
+    }
+    return StatusBar.currentHeight || 0;
+  };
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <View style={styles.toastContainer} pointerEvents="none">
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            {...toast}
-            containerStyle={{
-              bottom: (index * 60) + 50, // Stack toasts with 60px spacing
-            }}
-            onClose={() => handleClose(toast.id)}
-          />
-        ))}
+        {toasts.map((toast, index) => {
+          // Position toast at the absolute top - no status bar offset
+          const topPosition = toast.position === 'top' ? 0 + (index * 70) : undefined;
+          const bottomPosition = toast.position === 'bottom' ? 20 + (index * 70) : undefined;
+          
+          // Merge default positioning styles with custom containerStyle
+          const mergedContainerStyle = {
+            position: 'absolute',
+            top: topPosition,
+            bottom: bottomPosition,
+            left: 20,
+            right: 20,
+            zIndex: 9999,
+            elevation: 5,
+            ...toast.containerStyle
+          };
+          
+          return (
+            <Toast
+              key={toast.id}
+              {...toast}
+              containerStyle={mergedContainerStyle}
+              onClose={() => handleClose(toast.id)}
+            />
+          );
+        })}
       </View>
     </ToastContext.Provider>
   );
@@ -144,6 +180,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     pointerEvents: 'none',
+    zIndex: 9999,
   },
 });
 

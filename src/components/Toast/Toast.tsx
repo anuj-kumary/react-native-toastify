@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
+import { Text, StyleSheet, Animated, Platform } from 'react-native';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export interface ToastProps {
   message: string;
-  type?: ToastType;
-  duration?: number;
-  position?: 'top' | 'bottom';
-  onClose: () => void;
+  type: ToastType;
+  duration: number;
+  position: 'top' | 'bottom';
+  onClose?: () => void;
   textStyle?: object;
   containerStyle?: object;
 }
@@ -84,14 +84,12 @@ export const Toast: React.FC<ToastProps> = ({
         })
       ]).start(() => {
         console.log('Toast: Hide animation completed, calling onClose');
-        onClose();
+        onClose?.();
       });
     }, duration);
 
     return () => clearTimeout(timer);
   }, [fadeAnim, translateY, duration, onClose, position]);
-
-  const { width } = Dimensions.get('window');
 
   return (
     <Animated.View
@@ -99,10 +97,8 @@ export const Toast: React.FC<ToastProps> = ({
         styles.toast,
         {
           backgroundColor: toastTypes[type].backgroundColor,
-          [position]: 50,
           opacity: fadeAnim,
           transform: [{ translateY }],
-          width: width - 40,
         },
         containerStyle
       ]}
@@ -118,19 +114,17 @@ export const Toast: React.FC<ToastProps> = ({
 
 const styles = StyleSheet.create({
   toast: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
     padding: 15,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 3,
+    elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    ...(Platform.OS === 'ios' ? {} : { zIndex: 9999 }),
+    zIndex: 9999,
+    ...(Platform.OS === 'ios' ? { zIndex: 9999 } : {}),
   },
   indicator: {
     marginRight: 10,

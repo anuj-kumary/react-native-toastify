@@ -4,11 +4,14 @@ import { useToast } from '../context/ToastContext';
 export const HomeScreen = () => {
   const { showToast } = useToast();
 
-  const handleShowToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    console.log('HomeScreen: Button pressed -', message, type);
+  const handleShowToast = (message: string, type: 'success' | 'error' | 'warning' | 'info', duration?: number, position?: 'top' | 'bottom') => {
     try {
-      showToast(message, type);
-      console.log('HomeScreen: showToast called successfully');
+      showToast({
+        message,
+        type,
+        duration: duration || 3000,
+        position: position || 'bottom'
+      });
     } catch (error) {
       console.error('HomeScreen: Error calling showToast:', error);
     }
@@ -20,7 +23,12 @@ export const HomeScreen = () => {
 
   const handleTouchablePress = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
     console.log('HomeScreen: TouchableOpacity pressed -', message, type);
-    showToast(message, type);
+    showToast({
+      message,
+      type,
+      duration: 3000,
+      position: 'bottom'
+    });
   };
 
   const testAlert = () => {
@@ -29,7 +37,80 @@ export const HomeScreen = () => {
 
   const testToastContext = () => {
     console.log('HomeScreen: Testing toast context directly');
-    showToast('Direct test!', 'success');
+    showToast({
+      message: 'Direct test!',
+      type: 'success',
+      duration: 3000,
+      position: 'top'
+    });
+  };
+
+  // New functions to demonstrate textStyle and containerStyle
+  const showCustomStyledToast = () => {
+    showToast({
+      message: 'Custom styled toast with large text and rounded corners!',
+      type: 'info',
+      duration: 4000,
+      position: 'top',
+      textStyle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: '#ffffff'
+      },
+      containerStyle: {
+        borderRadius: 20,
+        backgroundColor: '#9c27b0',
+        padding: 20,
+        marginHorizontal: 10
+      }
+    });
+  };
+
+  const showGradientStyleToast = () => {
+    showToast({
+      message: 'Toast with custom background and text styling!',
+      type: 'success',
+      duration: 5000,
+      position: 'bottom',
+      textStyle: {
+        fontSize: 16,
+        fontStyle: 'italic',
+        textDecorationLine: 'underline',
+        color: '#fff'
+      },
+      containerStyle: {
+        backgroundColor: '#ff5722',
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 8
+      }
+    });
+  };
+
+  const showMinimalToast = () => {
+    showToast({
+      message: 'Minimal design toast',
+      type: 'warning',
+      duration: 3000,
+      position: 'top',
+      textStyle: {
+        fontSize: 14,
+        color: '#333'
+      },
+      containerStyle: {
+        backgroundColor: '#fff',
+        borderRadius: 4,
+        padding: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#ff9800'
+      }
+    });
   };
 
   return (
@@ -46,7 +127,7 @@ export const HomeScreen = () => {
       {/* Test Toast Context Directly */}
       <Button 
         title="Test Toast Context Directly"
-        onPress={handleClick}
+        onPress={testToastContext}
         color="#333"
       />
       
@@ -58,8 +139,8 @@ export const HomeScreen = () => {
       />
       
       <Button 
-        title="Error Toast"
-        onPress={() => handleShowToast('Error message!', 'error')}
+        title="Error Toast (Top)"
+        onPress={() => handleShowToast('Error message!', 'error', 5000, 'top')}
         color="#f44336"
       />
       
@@ -70,9 +151,28 @@ export const HomeScreen = () => {
       />
       
       <Button 
-        title="Info Toast"
-        onPress={() => handleShowToast('Info message!', 'info')}
+        title="Info Toast (Top)"
+        onPress={() => handleShowToast('Info message!', 'info', 3000, 'top')}
         color="#2196f3"
+      />
+
+      {/* New Custom Styled Toast Examples */}
+      <Button 
+        title="Custom Styled Toast"
+        onPress={showCustomStyledToast}
+        color="#9c27b0"
+      />
+
+      <Button 
+        title="Gradient Style Toast"
+        onPress={showGradientStyleToast}
+        color="#ff5722"
+      />
+
+      <Button 
+        title="Minimal Toast"
+        onPress={showMinimalToast}
+        color="#607d8b"
       />
 
       {/* TouchableOpacity as alternative */}

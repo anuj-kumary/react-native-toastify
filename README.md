@@ -1,30 +1,35 @@
-# React Native Toastify
+# 🚀 React Native Toastify Expo – Beautiful Toast Notifications for React Native & Expo
 
-A beautiful and customizable toast notification component for React Native applications, built for Expo and React Native.
+**react-native-toastify-expo** is a lightweight, customizable toast notification library built specifically for **React Native** apps using **Expo**. With cross-platform support, smooth animations, and full styling control, it's the easiest way to show success, error, or info toasts in your React Native project.
 
-### iOS Demo
+> 📦 Now available on [npm](https://www.npmjs.com/package/react-native-toastify-expo)
 
-https://github.com/user-attachments/assets/82862979-f5db-4d84-8782-a32530a84542
+---
 
-### Android Demo
+## 📱 Demo
 
+### iOS  
+![iOS Demo](assets/ios.mp4)
 
-https://github.com/user-attachments/assets/84b0eb72-7d81-4952-86f3-c0f7460922c6
+### Android  
+![Android Demo](assets/android.mov)
 
+---
 
+## ✨ Features
 
-## Features
+- 🎨 **Highly Customizable** – Control colors, icons, positions, durations, and styles
+- 📱 **Expo & React Native Support** – Works seamlessly on both Android and iOS
+- 🚀 **Lightweight** – No external dependencies
+- ⚡ **Smooth Animations** – Clean UI transitions with animation support
+- 🛠️ **TypeScript Support** – Full type definitions included
+- 🎯 **Flexible Placement** – Position toasts on top or bottom
+- 🔧 **Custom Toast Types** – Define your own toast variants
 
-- 🎨 **Fully Customizable**: Customize colors, icons, animations, and styling
-- 📱 **Cross-Platform**: Works on both iOS and Android
-- ⚡ **Smooth Animations**: Configurable animation duration and easing
-- 🎯 **Flexible Positioning**: Top or bottom positioning
-- 🔧 **Custom Toast Types**: Create your own toast types with custom colors and icons
-- 🎪 **Dynamic Styling**: Override any style property
-- 📦 **TypeScript Support**: Full TypeScript definitions included
-- 🚀 **Lightweight**: Minimal bundle size with no external dependencies
+---
 
-## Installation
+## 📦 Installation
+
 
 ```bash
 npm install react-native-toastify-expo
@@ -63,11 +68,21 @@ export const MyComponent = () => {
     <View>
       <Button 
         title="Show Success Toast"
-        onPress={() => showToast('Operation completed successfully!', 'success')}
+        onPress={() => showToast({
+          message: 'Operation completed successfully!',
+          type: 'success',
+          duration: 3000,
+          position: 'bottom'
+        })}
       />
       <Button 
         title="Show Error Toast"
-        onPress={() => showToast('Something went wrong!', 'error')}
+        onPress={() => showToast({
+          message: 'Something went wrong!',
+          type: 'error',
+          duration: 5000,
+          position: 'top'
+        })}
       />
     </View>
   );
@@ -81,25 +96,9 @@ export const MyComponent = () => {
 | Prop | Type | Description |
 |------|------|-------------|
 | `message` | `string` | The message to display in the toast |
-| `onClose` | `() => void` | Callback function called when toast is dismissed |
-
-### Optional Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | `ToastType` | `'info'` | Toast type: 'success', 'error', 'warning', 'info', or custom string |
-| `duration` | `number` | `3000` | Duration in milliseconds before auto-dismiss |
-| `position` | `'top' \| 'bottom'` | `'bottom'` | Position of the toast on screen |
-| `animationDuration` | `number` | `300` | Duration of show/hide animations |
-| `showIndicator` | `boolean` | `true` | Whether to show the icon indicator |
-| `borderRadius` | `number` | `8` | Border radius of the toast |
-| `padding` | `number` | `15` | Internal padding of the toast |
-| `margin` | `number` | `20` | Horizontal margin from screen edges |
-| `elevation` | `number` | `3` | Android elevation (shadow) |
-| `shadowColor` | `string` | `'#000'` | Shadow color for iOS |
-| `shadowOffset` | `{width: number, height: number}` | `{width: 0, height: 2}` | Shadow offset |
-| `shadowOpacity` | `number` | `0.25` | Shadow opacity |
-| `shadowRadius` | `number` | `3.84` | Shadow radius |
+| `type` | `ToastType` | Toast type: 'success', 'error', 'warning', 'info', or custom string |
+| `duration` | `number` | Duration in milliseconds before auto-dismiss |
+| `position` | `'top' \| 'bottom'` | Position of the toast on screen |
 
 ### Style Props
 
@@ -107,7 +106,6 @@ export const MyComponent = () => {
 |------|------|-------------|
 | `textStyle` | `object` | Custom styles for the message text |
 | `containerStyle` | `object` | Custom styles for the toast container |
-| `indicatorStyle` | `object` | Custom styles for the icon indicator |
 
 ### Custom Toast Types
 
@@ -137,19 +135,39 @@ const MyComponent = () => {
   const { showToast } = useToast();
 
   const handleSuccess = () => {
-    showToast('Data saved successfully!', 'success');
+    showToast({
+      message: 'Data saved successfully!',
+      type: 'success',
+      duration: 3000,
+      position: 'bottom'
+    });
   };
 
   const handleError = () => {
-    showToast('Failed to save data!', 'error');
+    showToast({
+      message: 'Failed to save data!',
+      type: 'error',
+      duration: 5000,
+      position: 'top'
+    });
   };
 
   const handleWarning = () => {
-    showToast('Please check your input!', 'warning');
+    showToast({
+      message: 'Please check your input!',
+      type: 'warning',
+      duration: 4000,
+      position: 'bottom'
+    });
   };
 
   const handleInfo = () => {
-    showToast('New update available!', 'info');
+    showToast({
+      message: 'New update available!',
+      type: 'info',
+      duration: 3000,
+      position: 'bottom'
+    });
   };
 
   return (
@@ -175,20 +193,76 @@ showToast({
   duration: 5000,
   position: 'top'
 });
+```
 
-// Custom styling
+### Custom Styling with textStyle and containerStyle
+
+You can fully customize the appearance of your toasts using the `textStyle` and `containerStyle` props:
+
+```jsx
+const { showToast } = useToast();
+
+// Custom styled toast with large text and rounded corners
 showToast({
-  message: 'Custom styled toast',
-  type: 'success',
+  message: 'Custom styled toast with large text and rounded corners!',
+  type: 'info',
+  duration: 4000,
+  position: 'top',
   textStyle: {
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
+    color: '#ffffff'
   },
   containerStyle: {
     borderRadius: 20,
-    paddingHorizontal: 25,
-    paddingVertical: 20
+    backgroundColor: '#9c27b0',
+    padding: 20,
+    marginHorizontal: 10
+  }
+});
+
+// Toast with custom background and text styling
+showToast({
+  message: 'Toast with custom background and text styling!',
+  type: 'success',
+  duration: 5000,
+  position: 'bottom',
+  textStyle: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    textDecorationLine: 'underline',
+    color: '#fff'
+  },
+  containerStyle: {
+    backgroundColor: '#ff5722',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8
+  }
+});
+
+// Minimal design toast
+showToast({
+  message: 'Minimal design toast',
+  type: 'warning',
+  duration: 3000,
+  position: 'top',
+  textStyle: {
+    fontSize: 14,
+    color: '#333'
+  },
+  containerStyle: {
+    backgroundColor: '#fff',
+    borderRadius: 4,
+    padding: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff9800'
   }
 });
 ```
@@ -208,6 +282,15 @@ The toast component uses React Native's StyleSheet for styling. You can customiz
 - **Border Radius:** 8px
 - **Padding:** 15px
 - **Shadow:** Subtle elevation/shadow for depth
+
+### Custom Styling
+
+You can override any default style by using the `textStyle` and `containerStyle` props:
+
+- **`textStyle`**: Overrides the message text styling (fontSize, color, fontWeight, etc.)
+- **`containerStyle`**: Overrides the toast container styling (backgroundColor, borderRadius, padding, etc.)
+
+The custom styles are merged with the default styles, so you only need to specify the properties you want to change.
 
 ## Requirements
 
