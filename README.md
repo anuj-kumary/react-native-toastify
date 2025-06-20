@@ -9,10 +9,10 @@
 ## 📱 Demo
 
 ### iOS  
-![iOS Demo](assets/ios.mp4)
+![iOS Demo](./assets/ios.mp4)
 
 ### Android  
-![Android Demo](assets/android.mov)
+![Android Demo](./assets/android.mov)
 
 ---
 
