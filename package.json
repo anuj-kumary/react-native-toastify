@@ -1,7 +1,7 @@
 {
   "name": "react-native-toastify-expo",
   "main": "expo-router/entry",
-  "version": "1.0.5",
+  "version": "1.1.1",
   "description": "Customizable toast notifications for React Native using Expo",
   "types": "lib/index.d.ts",
   "files": [
