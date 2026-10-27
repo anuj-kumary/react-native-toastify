@@ -3,6 +3,7 @@ name: Publish to npm
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,6 +19,6 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
       # Trusted publishing (OIDC) needs npm >= 11.5.1
-      - run: npm install -g npm@latest
+      - run: npm install -g npm@11
       - run: npm ci
-      - run: npm publish --provenance --access public
+      - run: npm publish --provenance --access public --loglevel verbose
