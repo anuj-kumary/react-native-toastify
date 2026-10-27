@@ -1,8 +1,8 @@
 {
   "name": "react-native-toastify-expo",
-  "main": "expo-router/entry",
-  "version": "1.1.1",
-  "description": "Customizable toast notifications for React Native using Expo",
+  "main": "lib/index.js",
+  "version": "1.1.2",
+  "description": "Type-safe, animated toast notifications for React Native and Expo with auto-dismiss",
   "types": "lib/index.d.ts",
   "files": [
     "lib",
@@ -16,7 +16,8 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "eslint src --ext .ts,.tsx",
-    "build": "tsc"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "react-native",
@@ -25,14 +26,19 @@
     "alert",
     "expo",
     "react",
-    "toastify"
+    "toastify",
+    "toast-notification",
+    "snackbar",
+    "react-native-toast",
+    "expo-toast",
+    "typescript"
   ],
   "author": "Anujkumar Yadav",
   "license": "MIT",
   "repository": {
-  "type": "git",
-  "url": "https://github.com/anuj-kumary/react-native-toastify"
-},
+    "type": "git",
+    "url": "git+https://github.com/anuj-kumary/react-native-toastify.git"
+  },
   "bugs": {
     "url": "https://github.com/anuj-kumary/react-native-toastify/issues"
   },
@@ -53,6 +59,7 @@
   },
   "private": false,
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
