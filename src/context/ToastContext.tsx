@@ -2,12 +2,8 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 import { View, StyleSheet, StatusBar, Platform } from 'react-native';
 import { Toast, ToastProps, ToastType } from '../components/Toast/Toast';
 
-export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'id'>> {
+export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose'>> {
   message: string;
-  duration: number;
-  position: 'top' | 'bottom';
-  textStyle?: object;
-  containerStyle?: object;
 }
 
 interface ToastItem extends Omit<ToastProps, 'onClose'> {

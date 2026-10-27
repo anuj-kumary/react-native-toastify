@@ -1,10 +1,8 @@
 # 🚀 React Native Toastify Expo – Beautiful Toast Notifications for React Native & Expo
 
-**react-native-toastify-expo** is a lightweight, customizable toast notification library built specifically for **React Native** apps using **Expo**. With cross-platform support, smooth animations, and full styling control, it's the easiest way to show success, error, or info toasts in your React Native project.
+**react-native-toastify-expo** is a lightweight, customizable toast notification library for **React Native** and **Expo** apps. With cross-platform support, smooth animations, and full styling control, it's the easiest way to show success, error, or info toasts in your React Native project.
 
 [![CI](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml/badge.svg)](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml) [![license](https://img.shields.io/npm/l/react-native-toastify-expo.svg)](LICENSE) [![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
-
-> 📦 Now available on [npm](https://www.npmjs.com/package/react-native-toastify-expo)
 
 ---
 
@@ -20,18 +18,19 @@
 
 ## ✨ Features
 
-- 🎨 **Highly Customizable** – Control colors, icons, positions, durations, and styles
-- 📱 **Expo & React Native Support** – Works seamlessly on both Android and iOS
-- 🚀 **Lightweight** – No external dependencies
-- ⚡ **Smooth Animations** – Clean UI transitions with animation support
-- 🛠️ **TypeScript Support** – Full type definitions included
-- 🎯 **Flexible Placement** – Position toasts on top or bottom
-- 🔧 **Custom Toast Types** – Define your own toast variants
+- 🎨 **Four built-in types**: `success`, `error`, `warning` and `info`, each with its own color and icon
+- 🖌️ **Fully stylable**: override the container and text styles per toast
+- ⚡ **Smooth animations**: fade and slide in/out using the native driver
+- ⏱️ **Auto-dismiss**: set how long each toast stays on screen
+- 📚 **Stacking**: several toasts can be on screen at once
+- 🎯 **Top or bottom placement**
+- 🛠️ **TypeScript**: type definitions included
+- 🪶 **Zero dependencies**: only `react` and `react-native` as peer dependencies
+- 📱 Works with **Expo** and bare **React Native**, on iOS and Android
 
 ---
 
 ## 📦 Installation
-
 
 ```bash
 npm install react-native-toastify-expo
@@ -39,12 +38,13 @@ npm install react-native-toastify-expo
 yarn add react-native-toastify-expo
 ```
 
-## Quick Start
+No native code, so there's no linking or `pod install`. It works in Expo Go.
 
-1. Wrap your app with the ToastProvider:
+## 🚀 Quick start
+
+1. Wrap your app in `ToastProvider` once, near the root:
 
 ```jsx
-import React from 'react';
 import { ToastProvider } from 'react-native-toastify-expo';
 
 export default function App() {
@@ -56,248 +56,105 @@ export default function App() {
 }
 ```
 
-2. Use the useToast hook in your components:
+2. Call `showToast` from any component inside it:
 
 ```jsx
-import React from 'react';
-import { View, Button } from 'react-native';
+import { Button } from 'react-native';
 import { useToast } from 'react-native-toastify-expo';
 
-export const MyComponent = () => {
+export function SaveButton() {
   const { showToast } = useToast();
 
   return (
-    <View>
-      <Button 
-        title="Show Success Toast"
-        onPress={() => showToast({
-          message: 'Operation completed successfully!',
-          type: 'success',
-          duration: 3000,
-          position: 'bottom'
-        })}
-      />
-      <Button 
-        title="Show Error Toast"
-        onPress={() => showToast({
-          message: 'Something went wrong!',
-          type: 'error',
-          duration: 5000,
-          position: 'top'
-        })}
-      />
-    </View>
+    <Button
+      title="Save"
+      onPress={() => showToast({ message: 'Saved!', type: 'success' })}
+    />
   );
-};
-```
-
-## Props
-
-### Required Props
-
-| Prop | Type | Description |
-|------|------|-------------|
-| `message` | `string` | The message to display in the toast |
-| `type` | `ToastType` | Toast type: 'success', 'error', 'warning', 'info', or custom string |
-| `duration` | `number` | Duration in milliseconds before auto-dismiss |
-| `position` | `'top' \| 'bottom'` | Position of the toast on screen |
-
-### Style Props
-
-| Prop | Type | Description |
-|------|------|-------------|
-| `textStyle` | `object` | Custom styles for the message text |
-| `containerStyle` | `object` | Custom styles for the toast container |
-
-### Custom Toast Types
-
-| Prop | Type | Description |
-|------|------|-------------|
-| `customToastTypes` | `Record<string, ToastTypeConfig>` | Custom toast type configurations |
-
-## ToastTypeConfig Interface
-
-```tsx
-interface ToastTypeConfig {
-  backgroundColor: string;  // Background color of the toast
-  indicator: string;        // Icon/emoji to display
-  iconColor: string;        // Color of the indicator
-  textColor?: string;       // Color of the text (optional, defaults to iconColor)
 }
 ```
 
-## Examples
+## 📖 API
 
-### Basic Usage
+### `showToast(options)`
 
-```jsx
-import { useToast } from 'react-native-toastify-expo';
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `message` | `string` | **required** | Text to show |
+| `type` | `'success' \| 'error' \| 'warning' \| 'info'` | `'info'` | Sets the color and icon |
+| `duration` | `number` | `3000` | Milliseconds before the toast auto-dismisses |
+| `position` | `'top' \| 'bottom'` | `'bottom'` | Where the toast appears |
+| `textStyle` | `TextStyle` | none | Merged into the message text style |
+| `containerStyle` | `ViewStyle` | none | Merged into the toast container style |
 
-const MyComponent = () => {
-  const { showToast } = useToast();
+### `showToast(message, type?, duration?, position?)`
 
-  const handleSuccess = () => {
-    showToast({
-      message: 'Data saved successfully!',
-      type: 'success',
-      duration: 3000,
-      position: 'bottom'
-    });
-  };
+A shorthand with the same defaults:
 
-  const handleError = () => {
-    showToast({
-      message: 'Failed to save data!',
-      type: 'error',
-      duration: 5000,
-      position: 'top'
-    });
-  };
-
-  const handleWarning = () => {
-    showToast({
-      message: 'Please check your input!',
-      type: 'warning',
-      duration: 4000,
-      position: 'bottom'
-    });
-  };
-
-  const handleInfo = () => {
-    showToast({
-      message: 'New update available!',
-      type: 'info',
-      duration: 3000,
-      position: 'bottom'
-    });
-  };
-
-  return (
-    <View>
-      <Button title="Success" onPress={handleSuccess} />
-      <Button title="Error" onPress={handleError} />
-      <Button title="Warning" onPress={handleWarning} />
-      <Button title="Info" onPress={handleInfo} />
-    </View>
-  );
-};
+```js
+showToast('Something went wrong', 'error', 5000, 'top');
 ```
 
-### Advanced Configuration
+### Exports
+
+| Export | Description |
+|--------|-------------|
+| `ToastProvider` | Context provider that renders the toasts. Wrap your app in it once. |
+| `useToast()` | Returns `{ showToast }`. Throws if used outside `ToastProvider`. |
+| `Toast` | The toast component itself, if you want to render one yourself |
+| `ToastType`, `ToastConfig`, `ToastProps` | TypeScript types |
+
+## 🎨 Examples
+
+### Every type
 
 ```jsx
-const { showToast } = useToast();
-
-// Custom duration and position
-showToast({
-  message: 'This toast will appear at the top for 5 seconds',
-  type: 'info',
-  duration: 5000,
-  position: 'top'
-});
+showToast({ message: 'Data saved successfully!', type: 'success' });
+showToast({ message: 'Failed to save data', type: 'error', duration: 5000, position: 'top' });
+showToast({ message: 'Please check your input', type: 'warning' });
+showToast({ message: 'New update available', type: 'info' });
 ```
 
-### Custom Styling with textStyle and containerStyle
-
-You can fully customize the appearance of your toasts using the `textStyle` and `containerStyle` props:
+### Custom styling
 
 ```jsx
-const { showToast } = useToast();
-
-// Custom styled toast with large text and rounded corners
 showToast({
-  message: 'Custom styled toast with large text and rounded corners!',
+  message: 'Custom styled toast',
   type: 'info',
-  duration: 4000,
   position: 'top',
-  textStyle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#ffffff'
-  },
-  containerStyle: {
-    borderRadius: 20,
-    backgroundColor: '#9c27b0',
-    padding: 20,
-    marginHorizontal: 10
-  }
+  textStyle: { fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+  containerStyle: { backgroundColor: '#9c27b0', borderRadius: 20, padding: 20 },
 });
 
-// Toast with custom background and text styling
-showToast({
-  message: 'Toast with custom background and text styling!',
-  type: 'success',
-  duration: 5000,
-  position: 'bottom',
-  textStyle: {
-    fontSize: 16,
-    fontStyle: 'italic',
-    textDecorationLine: 'underline',
-    color: '#fff'
-  },
-  containerStyle: {
-    backgroundColor: '#ff5722',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8
-  }
-});
-
-// Minimal design toast
+// Minimal light toast
 showToast({
   message: 'Minimal design toast',
   type: 'warning',
-  duration: 3000,
-  position: 'top',
-  textStyle: {
-    fontSize: 14,
-    color: '#333'
-  },
+  textStyle: { fontSize: 14, color: '#333' },
   containerStyle: {
     backgroundColor: '#fff',
     borderRadius: 4,
-    padding: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#ff9800'
-  }
+    borderLeftColor: '#ff9800',
+  },
 });
 ```
 
-## Styling
+### Default styles
 
-The toast component uses React Native's StyleSheet for styling. You can customize the appearance by passing `textStyle` and `containerStyle` props.
+| Type | Background | Icon |
+|------|------------|------|
+| `success` | `#4caf50` | ✓ |
+| `error` | `#f44336` | ✕ |
+| `warning` | `#ff9800` | ⚠ |
+| `info` | `#2196f3` | ℹ |
 
-### Default Styles
+Text is white at 16px. The container has an 8px border radius, 15px padding and a light shadow. `textStyle` and `containerStyle` are merged on top of these, so you only pass what you want to change.
 
-- **Background Colors:**
-  - Success: `#4caf50`
-  - Error: `#f44336`
-  - Warning: `#ff9800`
-  - Info: `#2196f3`
-- **Text Color:** White
-- **Border Radius:** 8px
-- **Padding:** 15px
-- **Shadow:** Subtle elevation/shadow for depth
+## ✅ Requirements
 
-### Custom Styling
-
-You can override any default style by using the `textStyle` and `containerStyle` props:
-
-- **`textStyle`**: Overrides the message text styling (fontSize, color, fontWeight, etc.)
-- **`containerStyle`**: Overrides the toast container styling (backgroundColor, borderRadius, padding, etc.)
-
-The custom styles are merged with the default styles, so you only need to specify the properties you want to change.
-
-## Requirements
-
-- React Native >= 0.60.0
-- React >= 16.8.0
+- React >= 16.8 (hooks)
+- React Native >= 0.60, or any Expo SDK
 
 ## Contributing
 
