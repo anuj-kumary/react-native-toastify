@@ -1,0 +1,22 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Include what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet helps a lot.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Versions
+      description: react-native-toastify-expo, react-native, expo, platform (iOS/Android/web)
+    validations:
+      required: true

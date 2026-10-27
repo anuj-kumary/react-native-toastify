@@ -2,7 +2,7 @@
 
 **react-native-toastify-expo** is a lightweight, customizable toast notification library built specifically for **React Native** apps using **Expo**. With cross-platform support, smooth animations, and full styling control, it's the easiest way to show success, error, or info toasts in your React Native project.
 
-[![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
+[![CI](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml/badge.svg)](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml) [![license](https://img.shields.io/npm/l/react-native-toastify-expo.svg)](LICENSE) [![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
 
 > 📦 Now available on [npm](https://www.npmjs.com/package/react-native-toastify-expo)
 
@@ -301,11 +301,7 @@ The custom styles are merged with the default styles, so you only need to specif
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please read the [contributing guide](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md) before opening a pull request. Report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## Support
 
