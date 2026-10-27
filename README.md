@@ -11,10 +11,10 @@
 ## 📱 Demo
 
 ### iOS  
-![iOS Demo](./assets/ios-demo.gif)
+![iOS Demo](https://raw.githubusercontent.com/anuj-kumary/react-native-toastify/main/assets/ios-demo.gif)
 
 ### Android  
-![Android Demo](./assets/android-demo.gif)
+![Android Demo](https://raw.githubusercontent.com/anuj-kumary/react-native-toastify/main/assets/android-demo.gif)
 
 ---
 
