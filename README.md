@@ -2,6 +2,8 @@
 
 **react-native-toastify-expo** is a lightweight, customizable toast notification library built specifically for **React Native** apps using **Expo**. With cross-platform support, smooth animations, and full styling control, it's the easiest way to show success, error, or info toasts in your React Native project.
 
+[![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
+
 > 📦 Now available on [npm](https://www.npmjs.com/package/react-native-toastify-expo)
 
 ---

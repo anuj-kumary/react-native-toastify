@@ -28,6 +28,8 @@
     "node_modules",
     "lib",
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "src/App.tsx",
+    "src/screens"
   ]
 }
