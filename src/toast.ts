@@ -1,6 +1,6 @@
 import type { ToastPosition, ToastProps, ToastType } from './components/Toast/Toast';
 
-export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'visible'>> {
+export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'visible' | 'id' | 'typeStyle'>> {
   message: string;
 }
 

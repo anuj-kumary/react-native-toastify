@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { View, StyleSheet, StatusBar, Platform } from 'react-native';
-import { Toast, ToastPosition, ToastProps, ToastType } from '../components/Toast/Toast';
+import { Keyboard, KeyboardEvent, View, StyleSheet, StatusBar, Platform } from 'react-native';
+import { Toast, ToastPosition, ToastProps, ToastType, ToastTypeStyle } from '../components/Toast/Toast';
 import { registerToastController, ToastConfig } from '../toast';
 
 export type { ToastConfig } from '../toast';
@@ -26,6 +26,14 @@ export interface ToastProviderProps {
   max?: number;
   /** Extra distance from the safe area, in points. Defaults to { top: 10, bottom: 20 }. */
   offset?: { top?: number; bottom?: number };
+  /** Move bottom toasts above the keyboard while it is open. Defaults to true. */
+  avoidKeyboard?: boolean;
+  /** Default for each toast's `showProgress`. Defaults to false. */
+  showProgress?: boolean;
+  /** Custom toast types, or new looks for the built-in ones, e.g. { upload: { backgroundColor: '#6200ee', icon: '⬆' } }. */
+  types?: Record<string, ToastTypeStyle>;
+  /** Default custom layout for every toast; a toast's own `render` takes precedence. */
+  render?: ToastProps['render'];
 }
 
 type Insets = { top: number; bottom: number };
@@ -53,22 +61,28 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   position = 'bottom',
   max,
   offset,
+  avoidKeyboard = true,
+  showProgress = false,
+  types,
+  render,
 }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const insets = useContext(SafeAreaInsetsContext) ?? fallbackInsets;
+  const keyboardHeight = useKeyboardHeight(avoidKeyboard);
   // Read through a ref so the callbacks below stay stable for the global controller.
-  const options = useRef({ duration, position, max });
-  options.current = { duration, position, max };
+  const options = useRef({ duration, position, max, showProgress });
+  options.current = { duration, position, max, showProgress };
 
   const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType, dur?: number, pos?: ToastPosition) => {
     const config: ToastConfig = typeof messageOrConfig === 'string' ? { message: messageOrConfig } : messageOrConfig;
-    const { duration: defaultDuration, position: defaultPosition, max: maxVisible } = options.current;
+    const { duration: defaultDuration, position: defaultPosition, max: maxVisible, showProgress: defaultProgress } = options.current;
     const newToast: ToastItem = {
       ...config,
       id: Math.random().toString(36).slice(2, 11),
       type: config.type || type || 'info',
       duration: config.duration || dur || defaultDuration,
       position: config.position || pos || defaultPosition,
+      showProgress: config.showProgress ?? defaultProgress,
       visible: true,
     };
     setToasts((currentToasts) => {
@@ -115,6 +129,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     <Toast
       key={toast.id}
       {...toast}
+      render={toast.render ?? render}
+      typeStyle={types?.[toast.type]}
       containerStyle={{ ...toastSpacing, ...toast.containerStyle }}
       onClose={() => removeToast(toast.id)}
     />
@@ -132,7 +148,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
           {toasts.filter((toast) => toast.position === 'top').map(renderToast)}
         </View>
         <View
-          style={[styles.stack, styles.bottomStack, { bottom: insets.bottom + (offset?.bottom ?? 20) }]}
+          // The keyboard height already includes the bottom inset.
+          style={[styles.stack, styles.bottomStack, { bottom: (keyboardHeight || insets.bottom) + (offset?.bottom ?? 20) }]}
           pointerEvents="box-none"
           testID="toast-stack-bottom"
         >
@@ -162,6 +179,27 @@ const styles = StyleSheet.create({
 });
 
 const toastSpacing = { marginVertical: 5 };
+
+// iOS reports the keyboard before it animates in; Android only after.
+const keyboardEvents =
+  Platform.OS === 'ios' ? (['keyboardWillShow', 'keyboardWillHide'] as const) : (['keyboardDidShow', 'keyboardDidHide'] as const);
+
+function useKeyboardHeight(enabled: boolean) {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    if (!enabled) {
+      setHeight(0);
+      return;
+    }
+    const show = Keyboard.addListener(keyboardEvents[0], (e: KeyboardEvent) => setHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(keyboardEvents[1], () => setHeight(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [enabled]);
+  return height;
+}
 
 export const useToast = () => {
   const context = useContext(ToastContext);

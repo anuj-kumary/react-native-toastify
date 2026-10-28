@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ScrollView, StyleSheet, Text } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ToastProvider, toast } from 'react-native-toastify-expo';
 
@@ -64,6 +64,38 @@ function Demo() {
         />
         <Button title="Hide it" onPress={() => toast.hide(offlineToastId)} />
         <Button title="Hide all" onPress={() => toast.hideAll()} />
+
+        <Text style={styles.section}>New in 1.3</Text>
+        <Button
+          title="Progress bar + onPress"
+          onPress={() =>
+            toast.info('Tap me to open the comments', {
+              showProgress: true,
+              duration: 5000,
+              onPress: () => toast.success('onPress ran'),
+            })
+          }
+        />
+        <Button title="Custom type" onPress={() => toast.show({ type: 'upload', message: 'Uploading photo…' })} />
+        <Button
+          title="Fully custom layout"
+          onPress={() =>
+            toast.show({
+              message: 'Jane sent you a message',
+              position: 'top',
+              duration: 6000,
+              render: ({ message, hide }) => (
+                <View style={styles.card}>
+                  <Text style={styles.avatar}>👩</Text>
+                  <Text style={styles.cardText}>{message}</Text>
+                  <Button title="Reply" onPress={() => { toast.success('Opening chat'); hide(); }} />
+                </View>
+              ),
+            })
+          }
+        />
+        <Text style={styles.hint}>Focus the field, then show a toast: it stays above the keyboard.</Text>
+        <TextInput style={styles.input} placeholder="Type here" />
       </ScrollView>
     </SafeAreaView>
   );
@@ -72,7 +104,7 @@ function Demo() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ToastProvider max={3}>
+      <ToastProvider max={3} types={{ upload: { backgroundColor: '#6200ee', icon: '⬆' } }}>
         <Demo />
       </ToastProvider>
     </SafeAreaProvider>
@@ -84,4 +116,18 @@ const styles = StyleSheet.create({
   content: { padding: 20, gap: 8 },
   heading: { fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
   hint: { textAlign: 'center', color: '#666', marginBottom: 8 },
+  section: { fontSize: 16, fontWeight: 'bold', marginTop: 16 },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  avatar: { fontSize: 24 },
+  cardText: { flex: 1 },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10 },
 });

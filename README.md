@@ -26,7 +26,11 @@
 - 👆 **Tap or swipe to dismiss**, or dismiss in code with `toast.hide(id)` / `toast.hideAll()`
 - 🔘 **Titles and action buttons**, for example "Undo"
 - 🖼️ **Custom icons**: any emoji, string or React element
-- ⚙️ **Provider defaults**: set duration, position, max visible toasts and offsets once
+- 🧩 **Custom types and layouts**: register your own types (`toast.show({ type: 'upload' })`), or render toasts however you like
+- 🔔 **Callbacks**: `onPress`, `onShow` and `onHide`
+- ⏱️ **Progress bar** counting down to auto-dismiss
+- ⌨️ **Keyboard-aware**: bottom toasts move above the keyboard
+- ⚙️ **Provider defaults**: set duration, position, max visible toasts, offsets and styles once
 - 📐 **Safe-area aware**: clears the notch and the home indicator
 - ♿ **Accessible**: announced by VoiceOver and TalkBack
 - ⚡ **Smooth animations** using the native driver
@@ -94,13 +98,18 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `message` | `string` | **required** | Text to show |
-| `type` | `'success' \| 'error' \| 'warning' \| 'info' \| 'loading'` | `'info'` | Sets the color and icon |
+| `type` | `'success' \| 'error' \| 'warning' \| 'info' \| 'loading'`, or a custom type | `'info'` | Sets the color and icon. Custom types are registered with the provider's `types` prop. |
 | `title` | `string` | none | Bold first line above the message |
 | `duration` | `number` | `3000` (or the provider's `duration`) | Milliseconds before auto-dismiss. `Infinity` keeps the toast until it's dismissed. |
 | `position` | `'top' \| 'bottom'` | `'bottom'` (or the provider's `position`) | Where the toast appears |
 | `action` | `{ label: string, onPress: () => void }` | none | Button on the toast. Pressing it also dismisses the toast. |
 | `icon` | `ReactNode` | the type's icon | Custom icon: a string, emoji or element. `null` hides it. |
 | `dismissible` | `boolean` | `true` | Tap or swipe sideways to dismiss |
+| `onPress` | `() => void` | none | Called when the toast is tapped, before it's dismissed |
+| `onShow` | `() => void` | none | Called once the toast has animated in |
+| `onHide` | `() => void` | none | Called once the toast is gone, whatever dismissed it |
+| `showProgress` | `boolean` | `false` (or the provider's `showProgress`) | Shows a bar counting down to auto-dismiss |
+| `render` | `(toast) => ReactNode` | the default layout (or the provider's `render`) | Fully custom layout. It receives `{ id, message, title, type, hide }`. Animations, swiping and the timer still apply. |
 | `textStyle` | `TextStyle` | none | Merged into the title and message text style |
 | `containerStyle` | `ViewStyle` | none | Merged into the toast container style |
 
@@ -112,6 +121,10 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | `position` | `'top' \| 'bottom'` | `'bottom'` | Default position |
 | `max` | `number` | unlimited | Most toasts visible per position. When a new toast would exceed it, the oldest is dismissed. |
 | `offset` | `{ top?: number, bottom?: number }` | `{ top: 10, bottom: 20 }` | Extra distance from the safe area |
+| `avoidKeyboard` | `boolean` | `true` | Moves bottom toasts above the keyboard while it's open |
+| `showProgress` | `boolean` | `false` | Shows the countdown bar on every toast |
+| `types` | `Record<string, { backgroundColor, icon? }>` | none | Registers custom types, or restyles the built-in ones |
+| `render` | `(toast) => ReactNode` | none | Default custom layout for every toast |
 
 ### `useToast()`
 
@@ -164,6 +177,48 @@ toast.show({
 });
 ```
 
+### Custom types
+
+```jsx
+<ToastProvider
+  types={{
+    upload: { backgroundColor: '#6200ee', icon: '⬆' },
+    success: { backgroundColor: '#00796b' }, // restyle a built-in type
+  }}
+>
+  <App />
+</ToastProvider>
+
+toast.show({ type: 'upload', message: 'Uploading photo…' });
+```
+
+### Fully custom layout
+
+```jsx
+toast.show({
+  message: 'Jane sent you a message',
+  render: ({ message, hide }) => (
+    <View style={styles.card}>
+      <Image source={avatar} style={styles.avatar} />
+      <Text style={styles.text}>{message}</Text>
+      <Button title="Reply" onPress={() => { openChat(); hide(); }} />
+    </View>
+  ),
+});
+```
+
+Pass `render` to `ToastProvider` to use your own layout for every toast.
+
+### Callbacks and progress bar
+
+```jsx
+toast.info('New comment on your post', {
+  showProgress: true,
+  onPress: () => navigation.navigate('Comments'),
+  onHide: () => markNotificationSeen(),
+});
+```
+
 ### Provider defaults
 
 ```jsx
@@ -194,16 +249,15 @@ Text is white at 16px. The container has an 8px border radius, 15px padding and 
 | Several toasts on screen at once | ✅ stacked, with optional `max` | ❌ one at a time |
 | Promise toasts (loading → success / error) | ✅ `toast.promise()` | ❌ |
 | Action button (e.g. "Undo") | ✅ `action` | Custom layout needed |
+| Progress bar | ✅ `showProgress` | ❌ |
 | Screen-reader announcements | ✅ VoiceOver and TalkBack | ❌ |
 | Safe-area insets (notch, home indicator) | ✅ automatic | Manual `topOffset` / `bottomOffset` |
 | Swipe to dismiss | ✅ | ✅ |
-| Keyboard avoidance | ❌ | ✅ |
-| `onPress` / `onShow` / `onHide` callbacks | ❌ | ✅ |
-| Fully custom toast layouts | Icon and styles | ✅ custom renderers |
+| Keyboard avoidance | ✅ | ✅ |
+| `onPress` / `onShow` / `onHide` callbacks | ✅ | ✅ |
+| Custom types and fully custom layouts | ✅ `types` and `render` | ✅ custom renderers |
 | Dependencies | 0 | 0 |
 | TypeScript | ✅ | ✅ |
-
-If you need keyboard avoidance or completely custom layouts today, react-native-toast-message covers those better.
 
 ## 🔁 Migrating from react-native-toast-message
 
@@ -251,7 +305,9 @@ Most apps can switch in a few minutes.
 | `swipeable: false` | `dismissible: false` |
 | `topOffset` / `bottomOffset` | `<ToastProvider offset={{ top, bottom }}>`, added on top of the safe-area insets |
 | `Toast.hide()` | `toast.hideAll()`, or `toast.hide(id)` for one toast |
-| Custom types through `config` | `icon`, `containerStyle` and `textStyle` per toast |
+| `onPress` / `onShow` / `onHide` | `onPress` / `onShow` / `onHide` |
+| `avoidKeyboard` / `keyboardOffset` | `<ToastProvider avoidKeyboard>` (on by default) |
+| Custom types through `config` | `<ToastProvider types>` for colors and icons, or `render` for a fully custom layout |
 
 ## ✅ Requirements
 
