@@ -1,18 +1,32 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet, StatusBar, Platform } from 'react-native';
-import { Toast, ToastProps, ToastType } from '../components/Toast/Toast';
+import { Toast, ToastPosition, ToastProps, ToastType } from '../components/Toast/Toast';
+import { registerToastController, ToastConfig } from '../toast';
 
-export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose'>> {
-  message: string;
-}
+export type { ToastConfig } from '../toast';
 
 interface ToastItem extends Omit<ToastProps, 'onClose'> {
   id: string;
 }
 
 type ToastContextType = {
-  showToast: (message: string | ToastConfig, type?: ToastType, duration?: number, position?: 'top' | 'bottom') => void;
+  /** Shows a toast and returns its id. */
+  showToast: (message: string | ToastConfig, type?: ToastType, duration?: number, position?: ToastPosition) => string;
+  hideToast: (id: string) => void;
+  hideAll: () => void;
 };
+
+export interface ToastProviderProps {
+  children: React.ReactNode;
+  /** Default auto-dismiss time in ms. Defaults to 3000. */
+  duration?: number;
+  /** Default position. Defaults to 'bottom'. */
+  position?: ToastPosition;
+  /** Most toasts visible per position; the oldest is dismissed when a new one would exceed it. */
+  max?: number;
+  /** Extra distance from the safe area, in points. Defaults to { top: 10, bottom: 20 }. */
+  offset?: { top?: number; bottom?: number };
+}
 
 type Insets = { top: number; bottom: number };
 
@@ -33,45 +47,96 @@ const fallbackInsets: Insets = {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider: React.FC<ToastProviderProps> = ({
+  children,
+  duration = 3000,
+  position = 'bottom',
+  max,
+  offset,
+}) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const insets = useContext(SafeAreaInsetsContext) ?? fallbackInsets;
+  // Read through a ref so the callbacks below stay stable for the global controller.
+  const options = useRef({ duration, position, max });
+  options.current = { duration, position, max };
 
-  const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType, duration?: number, position?: 'top' | 'bottom') => {
+  const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType, dur?: number, pos?: ToastPosition) => {
     const config: ToastConfig = typeof messageOrConfig === 'string' ? { message: messageOrConfig } : messageOrConfig;
+    const { duration: defaultDuration, position: defaultPosition, max: maxVisible } = options.current;
     const newToast: ToastItem = {
       ...config,
       id: Math.random().toString(36).slice(2, 11),
       type: config.type || type || 'info',
-      duration: config.duration || duration || 3000,
-      position: config.position || position || 'bottom',
+      duration: config.duration || dur || defaultDuration,
+      position: config.position || pos || defaultPosition,
+      visible: true,
     };
-    setToasts((currentToasts) => [...currentToasts, newToast]);
+    setToasts((currentToasts) => {
+      const next = [...currentToasts, newToast];
+      const shown = next.filter((t) => t.visible && t.position === newToast.position);
+      const excess = maxVisible ? shown.length - maxVisible : 0;
+      if (excess <= 0) return next;
+      const dropped = new Set(shown.slice(0, excess).map((t) => t.id));
+      return next.map((t) => (dropped.has(t.id) ? { ...t, visible: false } : t));
+    });
+    return newToast.id;
   }, []);
 
-  // Each Toast runs its own timer and calls this once its hide animation finishes.
-  const handleClose = useCallback((id: string) => {
-    setToasts((currentToasts) => currentToasts.filter(toast => toast.id !== id));
+  // Hiding plays the exit animation; the toast is removed once it calls onClose.
+  const hideToast = useCallback((id: string) => {
+    setToasts((currentToasts) => currentToasts.map((t) => (t.id === id ? { ...t, visible: false } : t)));
   }, []);
+
+  const hideAll = useCallback(() => {
+    setToasts((currentToasts) => currentToasts.map((t) => ({ ...t, visible: false })));
+  }, []);
+
+  const updateToast = useCallback((id: string, config: Partial<ToastConfig>) => {
+    setToasts((currentToasts) => currentToasts.map((t) => (t.id === id ? { ...t, ...config } : t)));
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((currentToasts) => currentToasts.filter((t) => t.id !== id));
+  }, []);
+
+  useEffect(
+    () =>
+      registerToastController({
+        show: (config) => showToast(config),
+        hide: hideToast,
+        hideAll,
+        update: updateToast,
+        defaults: () => options.current,
+      }),
+    [showToast, hideToast, hideAll, updateToast],
+  );
 
   const renderToast = (toast: ToastItem) => (
     <Toast
       key={toast.id}
       {...toast}
       containerStyle={{ ...toastSpacing, ...toast.containerStyle }}
-      onClose={() => handleClose(toast.id)}
+      onClose={() => removeToast(toast.id)}
     />
   );
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, hideToast, hideAll }}>
       {children}
       <View style={styles.toastContainer} pointerEvents="box-none">
-        <View style={[styles.stack, { top: insets.top + 10 }]} pointerEvents="box-none" testID="toast-stack-top">
-          {toasts.filter(toast => toast.position === 'top').map(renderToast)}
+        <View
+          style={[styles.stack, { top: insets.top + (offset?.top ?? 10) }]}
+          pointerEvents="box-none"
+          testID="toast-stack-top"
+        >
+          {toasts.filter((toast) => toast.position === 'top').map(renderToast)}
         </View>
-        <View style={[styles.stack, styles.bottomStack, { bottom: insets.bottom + 20 }]} pointerEvents="box-none" testID="toast-stack-bottom">
-          {toasts.filter(toast => toast.position === 'bottom').map(renderToast)}
+        <View
+          style={[styles.stack, styles.bottomStack, { bottom: insets.bottom + (offset?.bottom ?? 20) }]}
+          pointerEvents="box-none"
+          testID="toast-stack-bottom"
+        >
+          {toasts.filter((toast) => toast.position === 'bottom').map(renderToast)}
         </View>
       </View>
     </ToastContext.Provider>

@@ -1,7 +1,7 @@
 {
   "name": "react-native-toastify-expo",
   "main": "lib/index.js",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "Type-safe, animated toast notifications for React Native and Expo with auto-dismiss",
   "types": "lib/index.d.ts",
   "files": [

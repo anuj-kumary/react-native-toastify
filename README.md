@@ -18,14 +18,17 @@
 
 ## ✨ Features
 
-- 🎨 **Four built-in types**: `success`, `error`, `warning` and `info`, each with its own color and icon
-- 🖌️ **Fully stylable**: override the container and text styles per toast
-- ⚡ **Smooth animations**: fade and slide in/out using the native driver
-- ⏱️ **Auto-dismiss**: set how long each toast stays on screen
-- 📚 **Stacking**: several toasts can be on screen at once
-- 🎯 **Top or bottom placement**
-- 🛠️ **TypeScript**: type definitions included
-- 🪶 **Zero dependencies**: only `react` and `react-native` as peer dependencies
+- 🎨 **Built-in types**: `success`, `error`, `warning`, `info` and `loading`, each with its own color and icon
+- 🌍 **Call it from anywhere**: `toast.success('Saved')` works in API clients, stores and navigation code, not just components
+- ⏳ **Promise toasts**: show a spinner until a request finishes, then switch to success or error
+- 👆 **Tap or swipe to dismiss**, or dismiss in code with `toast.hide(id)` / `toast.hideAll()`
+- 🔘 **Titles and action buttons**, for example "Undo"
+- 🖼️ **Custom icons**: any emoji, string or React element
+- ⚙️ **Provider defaults**: set duration, position, max visible toasts and offsets once
+- 📐 **Safe-area aware**: clears the notch and the home indicator
+- ♿ **Accessible**: announced by VoiceOver and TalkBack
+- ⚡ **Smooth animations** using the native driver
+- 🛠️ **TypeScript** types included, 🪶 **zero dependencies**
 - 📱 Works with **Expo** and bare **React Native**, on iOS and Android
 
 ---
@@ -56,88 +59,115 @@ export default function App() {
 }
 ```
 
-2. Call `showToast` from any component inside it:
+2. Show a toast from anywhere:
 
 ```jsx
-import { Button } from 'react-native';
-import { useToast } from 'react-native-toastify-expo';
+import { toast } from 'react-native-toastify-expo';
 
-export function SaveButton() {
-  const { showToast } = useToast();
-
-  return (
-    <Button
-      title="Save"
-      onPress={() => showToast({ message: 'Saved!', type: 'success' })}
-    />
-  );
-}
+toast.success('Saved!');
+toast.error('Something went wrong', { position: 'top' });
 ```
+
+You can also use the hook inside components: `const { showToast } = useToast();`.
 
 ## 📖 API
 
-### `showToast(options)`
+### `toast`
+
+Works anywhere in your app once a `ToastProvider` is mounted: in components, API clients, stores and navigation code.
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `toast.success(message, options?)` | `id` | Green toast with a ✓ icon |
+| `toast.error(message, options?)` | `id` | Red toast with a ✕ icon |
+| `toast.warning(message, options?)` | `id` | Orange toast with a ⚠ icon |
+| `toast.info(message, options?)` | `id` | Blue toast with an ℹ icon |
+| `toast.show(options)` | `id` | Any type, set through `options.type` |
+| `toast.promise(promise, messages, options?)` | `promise` | Shows a loading toast, then the success or error message |
+| `toast.hide(id)` | | Dismisses one toast |
+| `toast.hideAll()` | | Dismisses every toast |
+
+### Toast options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `message` | `string` | **required** | Text to show |
-| `type` | `'success' \| 'error' \| 'warning' \| 'info'` | `'info'` | Sets the color and icon |
-| `duration` | `number` | `3000` | Milliseconds before the toast auto-dismisses |
-| `position` | `'top' \| 'bottom'` | `'bottom'` | Where the toast appears |
-| `textStyle` | `TextStyle` | none | Merged into the message text style |
+| `type` | `'success' \| 'error' \| 'warning' \| 'info' \| 'loading'` | `'info'` | Sets the color and icon |
+| `title` | `string` | none | Bold first line above the message |
+| `duration` | `number` | `3000` (or the provider's `duration`) | Milliseconds before auto-dismiss. `Infinity` keeps the toast until it's dismissed. |
+| `position` | `'top' \| 'bottom'` | `'bottom'` (or the provider's `position`) | Where the toast appears |
+| `action` | `{ label: string, onPress: () => void }` | none | Button on the toast. Pressing it also dismisses the toast. |
+| `icon` | `ReactNode` | the type's icon | Custom icon: a string, emoji or element. `null` hides it. |
+| `dismissible` | `boolean` | `true` | Tap or swipe sideways to dismiss |
+| `textStyle` | `TextStyle` | none | Merged into the title and message text style |
 | `containerStyle` | `ViewStyle` | none | Merged into the toast container style |
 
-### `showToast(message, type?, duration?, position?)`
+### `<ToastProvider>` props
 
-A shorthand with the same defaults:
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `duration` | `number` | `3000` | Default auto-dismiss time |
+| `position` | `'top' \| 'bottom'` | `'bottom'` | Default position |
+| `max` | `number` | unlimited | Most toasts visible per position. When a new toast would exceed it, the oldest is dismissed. |
+| `offset` | `{ top?: number, bottom?: number }` | `{ top: 10, bottom: 20 }` | Extra distance from the safe area |
 
-```js
-showToast('Something went wrong', 'error', 5000, 'top');
-```
+### `useToast()`
 
-### Exports
-
-| Export | Description |
-|--------|-------------|
-| `ToastProvider` | Context provider that renders the toasts. Wrap your app in it once. |
-| `useToast()` | Returns `{ showToast }`. Throws if used outside `ToastProvider`. |
-| `Toast` | The toast component itself, if you want to render one yourself |
-| `ToastType`, `ToastConfig`, `ToastProps` | TypeScript types |
+Returns `{ showToast, hideToast, hideAll }`. `showToast(options)` returns the toast's id. The 1.1 shorthand `showToast(message, type?, duration?, position?)` still works. `useToast` throws if it's used outside `ToastProvider`.
 
 ## 🎨 Examples
 
-### Every type
+### Promise toast
 
 ```jsx
-showToast({ message: 'Data saved successfully!', type: 'success' });
-showToast({ message: 'Failed to save data', type: 'error', duration: 5000, position: 'top' });
-showToast({ message: 'Please check your input', type: 'warning' });
-showToast({ message: 'New update available', type: 'info' });
+toast.promise(
+  saveReport(),
+  {
+    loading: 'Saving report…',
+    success: (report) => `Saved ${report.name}`,
+    error: (err) => `Couldn't save: ${err.message}`,
+  },
+);
 ```
 
-### Custom styling
+`toast.promise` returns the original promise, so you still `await` it or handle its errors as usual.
+
+### Title and action
 
 ```jsx
-showToast({
-  message: 'Custom styled toast',
-  type: 'info',
-  position: 'top',
-  textStyle: { fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
-  containerStyle: { backgroundColor: '#9c27b0', borderRadius: 20, padding: 20 },
+toast.info('The message was moved to the trash', {
+  title: 'Message deleted',
+  action: { label: 'Undo', onPress: () => restoreMessage(id) },
+  duration: 6000,
 });
+```
 
-// Minimal light toast
-showToast({
-  message: 'Minimal design toast',
-  type: 'warning',
-  textStyle: { fontSize: 14, color: '#333' },
-  containerStyle: {
-    backgroundColor: '#fff',
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: '#ff9800',
-  },
+### Show until dismissed
+
+```jsx
+const id = toast.warning('You are offline', { duration: Infinity, dismissible: false });
+// later
+toast.hide(id);
+```
+
+### Custom icon and styling
+
+```jsx
+toast.show({
+  message: 'Level up!',
+  icon: '🎉',
+  position: 'top',
+  textStyle: { fontSize: 18, fontWeight: 'bold' },
+  containerStyle: { backgroundColor: '#9c27b0', borderRadius: 20 },
 });
+```
+
+### Provider defaults
+
+```jsx
+<ToastProvider position="top" duration={4000} max={3} offset={{ top: 8 }}>
+  <App />
+</ToastProvider>
 ```
 
 ### Default styles
@@ -148,6 +178,7 @@ showToast({
 | `error` | `#f44336` | ✕ |
 | `warning` | `#ff9800` | ⚠ |
 | `info` | `#2196f3` | ℹ |
+| `loading` | `#323232` | spinner |
 
 Text is white at 16px. The container has an 8px border radius, 15px padding and a light shadow. `textStyle` and `containerStyle` are merged on top of these, so you only pass what you want to change.
 
