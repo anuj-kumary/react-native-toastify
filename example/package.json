@@ -1,0 +1,9 @@
+{
+  "name": "react-native-toastify-expo-example",
+  "version": "1.0.0",
+  "main": "App.tsx",
+  "dependencies": {
+    "react-native-safe-area-context": "*",
+    "react-native-toastify-expo": "^1.2.0"
+  }
+}

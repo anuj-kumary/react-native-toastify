@@ -4,6 +4,8 @@
 
 [![CI](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml/badge.svg)](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml) [![license](https://img.shields.io/npm/l/react-native-toastify-expo.svg)](LICENSE) [![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
 
+▶️ **[Try it live in Expo Snack](https://snack.expo.dev/@git/github.com/anuj-kumary/react-native-toastify:example)**: runs in your browser, or on your phone with Expo Go.
+
 ---
 
 ## 📱 Demo
@@ -181,6 +183,75 @@ toast.show({
 | `loading` | `#323232` | spinner |
 
 Text is white at 16px. The container has an 8px border radius, 15px padding and a light shadow. `textStyle` and `containerStyle` are merged on top of these, so you only pass what you want to change.
+
+## 🆚 Compared with react-native-toast-message
+
+[react-native-toast-message](https://github.com/calintamas/react-native-toast-message) is the most popular toast library and a great choice. Here's how the two differ (compared with its v2.5):
+
+| | react-native-toastify-expo | react-native-toast-message |
+|---|:---:|:---:|
+| Call from anywhere (outside components) | ✅ `toast.success()` | ✅ `Toast.show()` |
+| Several toasts on screen at once | ✅ stacked, with optional `max` | ❌ one at a time |
+| Promise toasts (loading → success / error) | ✅ `toast.promise()` | ❌ |
+| Action button (e.g. "Undo") | ✅ `action` | Custom layout needed |
+| Screen-reader announcements | ✅ VoiceOver and TalkBack | ❌ |
+| Safe-area insets (notch, home indicator) | ✅ automatic | Manual `topOffset` / `bottomOffset` |
+| Swipe to dismiss | ✅ | ✅ |
+| Keyboard avoidance | ❌ | ✅ |
+| `onPress` / `onShow` / `onHide` callbacks | ❌ | ✅ |
+| Fully custom toast layouts | Icon and styles | ✅ custom renderers |
+| Dependencies | 0 | 0 |
+| TypeScript | ✅ | ✅ |
+
+If you need keyboard avoidance or completely custom layouts today, react-native-toast-message covers those better.
+
+## 🔁 Migrating from react-native-toast-message
+
+Most apps can switch in a few minutes.
+
+**1. Replace the root component.** Instead of rendering `<Toast />` last in your root, wrap your app:
+
+```diff
+- import Toast from 'react-native-toast-message';
++ import { ToastProvider } from 'react-native-toastify-expo';
+
+  export default function App() {
+    return (
+-     <>
+-       <YourApp />
+-       <Toast />
+-     </>
++     <ToastProvider>
++       <YourApp />
++     </ToastProvider>
+    );
+  }
+```
+
+**2. Update the calls.** `text1` becomes the `title`, and `text2` becomes the message:
+
+```diff
+- import Toast from 'react-native-toast-message';
++ import { toast } from 'react-native-toastify-expo';
+
+- Toast.show({ type: 'success', text1: 'Saved', text2: 'Your changes are live' });
++ toast.success('Your changes are live', { title: 'Saved' });
+
+- Toast.show({ type: 'error', text1: 'Something went wrong' });
++ toast.error('Something went wrong');
+```
+
+| react-native-toast-message | react-native-toastify-expo |
+|---|---|
+| `Toast.show({ type, text1, text2 })` | `toast[type](text2, { title: text1 })`, or `toast.show({ type, title, message })` |
+| A toast with only `text1` | `toast[type](text1)` |
+| `visibilityTime: 4000` | `duration: 4000` |
+| `autoHide: false` | `duration: Infinity` |
+| `position: 'top'` | `position: 'top'` |
+| `swipeable: false` | `dismissible: false` |
+| `topOffset` / `bottomOffset` | `<ToastProvider offset={{ top, bottom }}>`, added on top of the safe-area insets |
+| `Toast.hide()` | `toast.hideAll()`, or `toast.hide(id)` for one toast |
+| Custom types through `config` | `icon`, `containerStyle` and `textStyle` per toast |
 
 ## ✅ Requirements
 
