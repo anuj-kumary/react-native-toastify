@@ -8,6 +8,21 @@ updates:
       dev-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+    ignore:
+      # The test environment is pinned to React 18 / React Native 0.76; move these together, by hand.
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-native
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: react-test-renderer
+        update-types: [version-update:semver-major]
+      - dependency-name: '@types/react'
+        update-types: [version-update:semver-major]
+      - dependency-name: '@types/react-test-renderer'
+        update-types: [version-update:semver-major]
+      # typescript-eslint supports TypeScript < 6.1; revisit when it supports 7.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
