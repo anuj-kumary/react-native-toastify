@@ -1,7 +1,7 @@
 import React from 'react';
 import * as ReactNative from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { toast, ToastProvider, ToastProviderProps, useToast } from '..';
+import { toast, ToastProvider, type ToastProviderProps, useToast } from '..';
 
 jest.useFakeTimers();
 
@@ -105,7 +105,10 @@ describe('themes', () => {
   test("'light' uses a white card and dark text", () => {
     renderProvider({ theme: 'light' });
     show(() => toast.info('Light'));
-    expect(screen.getByTestId('toast')).toHaveStyle({ backgroundColor: '#ffffff', borderLeftColor: '#2196f3' });
+    expect(screen.getByTestId('toast')).toHaveStyle({
+      backgroundColor: '#ffffff',
+      borderLeftColor: '#2196f3',
+    });
     expect(screen.getByText('Light')).toHaveStyle({ color: '#1f1f1f' });
   });
 
@@ -147,7 +150,14 @@ describe('pause on press and hold', () => {
 
   test('the progress bar stops while held', () => {
     renderProvider();
-    show(() => toast.info('Progress', { duration: 2000, showProgress: true, dismissible: false, onPress: () => {} }));
+    show(() =>
+      toast.info('Progress', {
+        duration: 2000,
+        showProgress: true,
+        dismissible: false,
+        onPress: () => {},
+      }),
+    );
     advance(1000);
 
     fireEvent(screen.getByText('Progress'), 'pressIn');

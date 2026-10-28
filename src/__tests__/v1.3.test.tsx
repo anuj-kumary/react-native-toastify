@@ -1,7 +1,7 @@
 import React from 'react';
 import { Keyboard, Pressable, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { toast, ToastProvider, ToastProviderProps } from '..';
+import { toast, ToastProvider, type ToastProviderProps } from '..';
 
 jest.useFakeTimers();
 
@@ -124,7 +124,9 @@ describe('custom types and layouts', () => {
   test("the provider's render is the default layout, and a toast's own render wins", () => {
     renderProvider({ render: ({ message }) => <Text>{`[app] ${message}`}</Text> });
     show(() => toast.success('default layout'));
-    show(() => toast.success('own layout', { render: ({ message }) => <Text>{`[own] ${message}`}</Text> }));
+    show(() =>
+      toast.success('own layout', { render: ({ message }) => <Text>{`[own] ${message}`}</Text> }),
+    );
 
     expect(screen.getByText('[app] default layout')).toBeTruthy();
     expect(screen.getByText('[own] own layout')).toBeTruthy();
@@ -133,7 +135,10 @@ describe('custom types and layouts', () => {
 
 describe('progress bar', () => {
   const widthPercent = () => {
-    const style = Object.assign({}, ...[screen.getByTestId('toast-progress').props.style].flat(Infinity));
+    const style = Object.assign(
+      {},
+      ...[screen.getByTestId('toast-progress').props.style].flat(Infinity),
+    );
     return parseFloat(style.width);
   };
 

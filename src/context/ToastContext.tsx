@@ -1,7 +1,22 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { Keyboard, KeyboardEvent, View, StyleSheet, StatusBar, Platform, useColorScheme } from 'react-native';
-import { Toast, ToastPosition, ToastProps, ToastTheme, ToastType, ToastTypeStyle } from '../components/Toast/Toast';
-import { registerToastController, ToastConfig } from '../toast';
+import {
+  Keyboard,
+  type KeyboardEvent,
+  View,
+  StyleSheet,
+  StatusBar,
+  Platform,
+  useColorScheme,
+} from 'react-native';
+import {
+  Toast,
+  type ToastPosition,
+  type ToastProps,
+  type ToastTheme,
+  type ToastType,
+  type ToastTypeStyle,
+} from '../components/Toast/Toast';
+import { registerToastController, type ToastConfig } from '../toast';
 
 export type { ToastConfig } from '../toast';
 
@@ -14,7 +29,12 @@ interface ToastItem extends Omit<ToastProps, 'onClose'> {
 
 type ToastContextType = {
   /** Shows a toast and returns its id. */
-  showToast: (message: string | ToastConfig, type?: ToastType, duration?: number, position?: ToastPosition) => string;
+  showToast: (
+    message: string | ToastConfig,
+    type?: ToastType,
+    duration?: number,
+    position?: ToastPosition,
+  ) => string;
   /** Changes a toast on screen and restarts its countdown. */
   updateToast: (id: string, config: Partial<ToastConfig>) => void;
   hideToast: (id: string) => void;
@@ -51,14 +71,15 @@ type Insets = { top: number; bottom: number };
 // home-indicator insets. Without it, or without a SafeAreaProvider, fall back to the status bar height.
 let SafeAreaInsetsContext: React.Context<Insets | null> = createContext<Insets | null>(null);
 try {
-  SafeAreaInsetsContext = require('react-native-safe-area-context').SafeAreaInsetsContext ?? SafeAreaInsetsContext;
+  SafeAreaInsetsContext =
+    require('react-native-safe-area-context').SafeAreaInsetsContext ?? SafeAreaInsetsContext;
 } catch {
   // not installed
 }
 
 // ponytail: 44 is the notched-iPhone status bar; install react-native-safe-area-context for exact insets.
 const fallbackInsets: Insets = {
-  top: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 44,
+  top: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44,
   bottom: 0,
 };
 
@@ -79,47 +100,66 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const colorScheme = useColorScheme();
-  const resolvedTheme: ToastTheme = theme === 'system' ? (colorScheme === 'dark' ? 'dark' : 'light') : theme;
+  const resolvedTheme: ToastTheme =
+    theme === 'system' ? (colorScheme === 'dark' ? 'dark' : 'light') : theme;
   const insets = useContext(SafeAreaInsetsContext) ?? fallbackInsets;
   const keyboardHeight = useKeyboardHeight(avoidKeyboard);
   // Read through a ref so the callbacks below stay stable for the global controller.
-  const options = useRef({ duration, position, max, showProgress });
-  options.current = { duration, position, max, showProgress };
+  const optionsRef = useRef({ duration, position, max, showProgress });
+  optionsRef.current = { duration, position, max, showProgress };
 
-  const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType, dur?: number, pos?: ToastPosition) => {
-    const config: ToastConfig = typeof messageOrConfig === 'string' ? { message: messageOrConfig } : messageOrConfig;
-    const { duration: defaultDuration, position: defaultPosition, max: maxVisible, showProgress: defaultProgress } = options.current;
-    const newToast: ToastItem = {
-      ...config,
-      id: config.id ?? randomId(),
-      key: randomId(),
-      revision: 0,
-      type: config.type || type || 'info',
-      duration: config.duration || dur || defaultDuration,
-      position: config.position || pos || defaultPosition,
-      showProgress: config.showProgress ?? defaultProgress,
-      visible: true,
-    };
-    setToasts((currentToasts) => {
-      const existing = config.id ? currentToasts.find((t) => t.visible && t.id === config.id) : undefined;
-      if (existing) {
-        return currentToasts.map((t) =>
-          t === existing ? { ...newToast, key: t.key, revision: t.revision + 1 } : t,
-        );
-      }
-      const next = [...currentToasts, newToast];
-      const shown = next.filter((t) => t.visible && t.position === newToast.position);
-      const excess = maxVisible ? shown.length - maxVisible : 0;
-      if (excess <= 0) return next;
-      const dropped = new Set(shown.slice(0, excess).map((t) => t.key));
-      return next.map((t) => (dropped.has(t.key) ? { ...t, visible: false } : t));
-    });
-    return newToast.id;
-  }, []);
+  const showToast = useCallback(
+    (
+      messageOrConfig: string | ToastConfig,
+      type?: ToastType,
+      dur?: number,
+      pos?: ToastPosition,
+    ) => {
+      const config: ToastConfig =
+        typeof messageOrConfig === 'string' ? { message: messageOrConfig } : messageOrConfig;
+      const {
+        duration: defaultDuration,
+        position: defaultPosition,
+        max: maxVisible,
+        showProgress: defaultProgress,
+      } = optionsRef.current;
+      const newToast: ToastItem = {
+        ...config,
+        id: config.id ?? randomId(),
+        key: randomId(),
+        revision: 0,
+        type: config.type || type || 'info',
+        duration: config.duration || dur || defaultDuration,
+        position: config.position || pos || defaultPosition,
+        showProgress: config.showProgress ?? defaultProgress,
+        visible: true,
+      };
+      setToasts((currentToasts) => {
+        const existing = config.id
+          ? currentToasts.find((t) => t.visible && t.id === config.id)
+          : undefined;
+        if (existing) {
+          return currentToasts.map((t) =>
+            t === existing ? { ...newToast, key: t.key, revision: t.revision + 1 } : t,
+          );
+        }
+        const next = [...currentToasts, newToast];
+        const shown = next.filter((t) => t.visible && t.position === newToast.position);
+        const excess = maxVisible ? shown.length - maxVisible : 0;
+        if (excess <= 0) return next;
+        const dropped = new Set(shown.slice(0, excess).map((t) => t.key));
+        return next.map((t) => (dropped.has(t.key) ? { ...t, visible: false } : t));
+      });
+      return newToast.id;
+    },
+    [],
+  );
 
   // Hiding plays the exit animation; the toast is removed once it calls onClose.
   const hideToast = useCallback((id: string) => {
-    setToasts((currentToasts) => currentToasts.map((t) => (t.id === id ? { ...t, visible: false } : t)));
+    setToasts((currentToasts) =>
+      currentToasts.map((t) => (t.id === id ? { ...t, visible: false } : t)),
+    );
   }, []);
 
   const hideAll = useCallback(() => {
@@ -128,7 +168,9 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 
   const updateToast = useCallback((id: string, config: Partial<ToastConfig>) => {
     setToasts((currentToasts) =>
-      currentToasts.map((t) => (t.visible && t.id === id ? { ...t, ...config, id, revision: t.revision + 1 } : t)),
+      currentToasts.map((t) =>
+        t.visible && t.id === id ? { ...t, ...config, id, revision: t.revision + 1 } : t,
+      ),
     );
   }, []);
 
@@ -143,13 +185,18 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
         hide: hideToast,
         hideAll,
         update: updateToast,
-        defaults: () => options.current,
+        defaults: () => optionsRef.current,
       }),
     [showToast, hideToast, hideAll, updateToast],
   );
 
   const renderToast = ({ key, ...toast }: ToastItem) => (
-    <View key={key} style={[styles.slot, { maxWidth }]} pointerEvents="box-none" testID="toast-slot">
+    <View
+      key={key}
+      style={[styles.slot, { maxWidth }]}
+      pointerEvents="box-none"
+      testID="toast-slot"
+    >
       <Toast
         {...toast}
         render={toast.render ?? render}
@@ -174,7 +221,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
         </View>
         <View
           // The keyboard height already includes the bottom inset.
-          style={[styles.stack, styles.bottomStack, { bottom: (keyboardHeight || insets.bottom) + (offset?.bottom ?? 20) }]}
+          style={[
+            styles.stack,
+            styles.bottomStack,
+            { bottom: (keyboardHeight || insets.bottom) + (offset?.bottom ?? 20) },
+          ]}
           pointerEvents="box-none"
           testID="toast-stack-bottom"
         >
@@ -214,23 +265,24 @@ const randomId = () => Math.random().toString(36).slice(2, 11);
 
 // iOS reports the keyboard before it animates in; Android only after.
 const keyboardEvents =
-  Platform.OS === 'ios' ? (['keyboardWillShow', 'keyboardWillHide'] as const) : (['keyboardDidShow', 'keyboardDidHide'] as const);
+  Platform.OS === 'ios'
+    ? (['keyboardWillShow', 'keyboardWillHide'] as const)
+    : (['keyboardDidShow', 'keyboardDidHide'] as const);
 
 function useKeyboardHeight(enabled: boolean) {
   const [height, setHeight] = useState(0);
   useEffect(() => {
-    if (!enabled) {
-      setHeight(0);
-      return;
-    }
-    const show = Keyboard.addListener(keyboardEvents[0], (e: KeyboardEvent) => setHeight(e.endCoordinates.height));
+    if (!enabled) return;
+    const show = Keyboard.addListener(keyboardEvents[0], (e: KeyboardEvent) =>
+      setHeight(e.endCoordinates.height),
+    );
     const hide = Keyboard.addListener(keyboardEvents[1], () => setHeight(0));
     return () => {
       show.remove();
       hide.remove();
     };
   }, [enabled]);
-  return height;
+  return enabled ? height : 0;
 }
 
 export const useToast = () => {
