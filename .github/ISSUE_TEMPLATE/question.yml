@@ -1,0 +1,26 @@
+name: ❓ Question
+description: Ask how to do something with the library
+title: '[Question]: '
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Many answers are in the [README](https://github.com/anuj-kumary/react-native-toastify#readme): the API tables, examples and migration guide. If something there is unclear, that's worth an issue too.
+  - type: textarea
+    id: question
+    attributes:
+      label: What are you trying to do?
+      placeholder: How do I show a toast above a react-native modal?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      render: tsx
+  - type: input
+    id: version
+    attributes:
+      label: react-native-toastify-expo version
+      placeholder: 1.3.0
