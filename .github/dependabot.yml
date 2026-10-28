@@ -20,6 +20,9 @@ updates:
         update-types: [version-update:semver-major]
       - dependency-name: '@types/react-test-renderer'
         update-types: [version-update:semver-major]
+      # Testing Library 14 requires React 19.
+      - dependency-name: '@testing-library/react-native'
+        update-types: [version-update:semver-major]
       # typescript-eslint supports TypeScript < 6.1; revisit when it supports 7.
       - dependency-name: typescript
         update-types: [version-update:semver-major]
