@@ -5,6 +5,7 @@
 Closes #
 
 ## Checklist
-- [ ] `npm run build` passes
+- [ ] `npm run lint`, `npm test` and `npm run build` pass
+- [ ] Tests added or updated for the change
 - [ ] README updated if the public API changed
 - [ ] Tested on iOS / Android / Expo (say which)
