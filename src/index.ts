@@ -1,7 +1,6 @@
 export { Toast } from './components/Toast/Toast';
-export type { 
-  ToastProps, 
-  ToastType, 
-} from './components/Toast/Toast';
+export type { ToastProps, ToastType, ToastPosition, ToastAction } from './components/Toast/Toast';
 export { ToastProvider, useToast } from './context/ToastContext';
-export type { ToastConfig } from './context/ToastContext';
+export type { ToastProviderProps } from './context/ToastContext';
+export { toast } from './toast';
+export type { ToastConfig, ToastOptions } from './toast';
