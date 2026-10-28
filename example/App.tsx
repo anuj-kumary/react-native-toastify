@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ToastProvider, toast } from 'react-native-toastify-expo';
+import { ToastProvider, toast, type ToastProviderProps } from 'react-native-toastify-expo';
 
 const fakeRequest = (succeed: boolean) =>
   new Promise<string>((resolve, reject) =>
@@ -9,8 +9,23 @@ const fakeRequest = (succeed: boolean) =>
   );
 
 let offlineToastId = '';
+const themes: NonNullable<ToastProviderProps['theme']>[] = ['colored', 'light', 'dark', 'system'];
 
-function Demo() {
+function simulateUpload() {
+  const id = toast.info('Uploading… 0%', { duration: Infinity });
+  let percent = 0;
+  const timer = setInterval(() => {
+    percent += 25;
+    if (percent < 100) {
+      toast.update(id, { message: `Uploading… ${percent}%` });
+    } else {
+      clearInterval(timer);
+      toast.update(id, { message: 'Upload complete', type: 'success', duration: 3000 });
+    }
+  }, 700);
+}
+
+function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }) {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -94,6 +109,10 @@ function Demo() {
             })
           }
         />
+        <Button title={`Theme: ${theme} (tap to change)`} onPress={onNextTheme} />
+        <Button title="Same id twice (no duplicates)" onPress={() => toast.error('You are offline', { id: 'network' })} />
+        <Button title="Update in place" onPress={simulateUpload} />
+        <Text style={styles.hint}>Hold a toast to pause its countdown.</Text>
         <Text style={styles.hint}>Focus the field, then show a toast: it stays above the keyboard.</Text>
         <TextInput style={styles.input} placeholder="Type here" />
       </ScrollView>
@@ -102,10 +121,12 @@ function Demo() {
 }
 
 export default function App() {
+  const [themeIndex, setThemeIndex] = useState(0);
+  const theme = themes[themeIndex];
   return (
     <SafeAreaProvider>
-      <ToastProvider max={3} types={{ upload: { backgroundColor: '#6200ee', icon: '⬆' } }}>
-        <Demo />
+      <ToastProvider max={3} theme={theme} types={{ upload: { backgroundColor: '#6200ee', icon: '⬆' } }}>
+        <Demo theme={theme} onNextTheme={() => setThemeIndex((i) => (i + 1) % themes.length)} />
       </ToastProvider>
     </SafeAreaProvider>
   );

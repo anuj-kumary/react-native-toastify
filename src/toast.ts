@@ -1,7 +1,10 @@
 import type { ToastPosition, ToastProps, ToastType } from './components/Toast/Toast';
 
-export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'visible' | 'id' | 'typeStyle'>> {
+export interface ToastConfig
+  extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'visible' | 'id' | 'typeStyle' | 'theme' | 'revision'>> {
   message: string;
+  /** Showing a toast with the id of one already on screen updates that toast instead of adding another. */
+  id?: string;
 }
 
 /** Options for the typed helpers, e.g. `toast.success('Saved', { position: 'top' })`. */
@@ -48,6 +51,8 @@ export const toast = {
   error: typed('error'),
   warning: typed('warning'),
   info: typed('info'),
+  /** Changes a toast on screen (message, type, title, duration…) and restarts its countdown. */
+  update: (id: string, options: Partial<ToastConfig>) => withController((c) => c.update(id, options), undefined),
   hide: (id: string) => withController((c) => c.hide(id), undefined),
   hideAll: () => withController((c) => c.hideAll(), undefined),
   /**

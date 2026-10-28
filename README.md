@@ -24,6 +24,9 @@
 - 🌍 **Call it from anywhere**: `toast.success('Saved')` works in API clients, stores and navigation code, not just components
 - ⏳ **Promise toasts**: show a spinner until a request finishes, then switch to success or error
 - 👆 **Tap or swipe to dismiss**, or dismiss in code with `toast.hide(id)` / `toast.hideAll()`
+- ✋ **Hold to pause**: holding a toast pauses its countdown so it can be read
+- 🔁 **Update in place, no duplicates**: `toast.update(id, …)`, and repeating a toast with the same `id` updates it instead of stacking another
+- 🌗 **Themes**: colored, light, dark, or follow the device
 - 🔘 **Titles and action buttons**, for example "Undo"
 - 🖼️ **Custom icons**: any emoji, string or React element
 - 🧩 **Custom types and layouts**: register your own types (`toast.show({ type: 'upload' })`), or render toasts however you like
@@ -32,6 +35,7 @@
 - ⌨️ **Keyboard-aware**: bottom toasts move above the keyboard
 - ⚙️ **Provider defaults**: set duration, position, max visible toasts, offsets and styles once
 - 📐 **Safe-area aware**: clears the notch and the home indicator
+- 🖥️ **Tablet and web friendly**: toasts are capped at a readable width and centered
 - ♿ **Accessible**: announced by VoiceOver and TalkBack
 - ⚡ **Smooth animations** using the native driver
 - 🛠️ **TypeScript** types included, 🪶 **zero dependencies**
@@ -90,6 +94,7 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | `toast.info(message, options?)` | `id` | Blue toast with an ℹ icon |
 | `toast.show(options)` | `id` | Any type, set through `options.type` |
 | `toast.promise(promise, messages, options?)` | `promise` | Shows a loading toast, then the success or error message |
+| `toast.update(id, options)` | | Changes a toast on screen and restarts its countdown |
 | `toast.hide(id)` | | Dismisses one toast |
 | `toast.hideAll()` | | Dismisses every toast |
 
@@ -98,6 +103,7 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `message` | `string` | **required** | Text to show |
+| `id` | `string` | generated | If a toast with this id is on screen, it's updated instead of a new one being added |
 | `type` | `'success' \| 'error' \| 'warning' \| 'info' \| 'loading'`, or a custom type | `'info'` | Sets the color and icon. Custom types are registered with the provider's `types` prop. |
 | `title` | `string` | none | Bold first line above the message |
 | `duration` | `number` | `3000` (or the provider's `duration`) | Milliseconds before auto-dismiss. `Infinity` keeps the toast until it's dismissed. |
@@ -125,10 +131,12 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | `showProgress` | `boolean` | `false` | Shows the countdown bar on every toast |
 | `types` | `Record<string, { backgroundColor, icon? }>` | none | Registers custom types, or restyles the built-in ones |
 | `render` | `(toast) => ReactNode` | none | Default custom layout for every toast |
+| `theme` | `'colored' \| 'light' \| 'dark' \| 'system'` | `'colored'` | `'colored'` fills the card with the type's color. `'light'` and `'dark'` use a neutral card with a colored accent. `'system'` follows the device. |
+| `maxWidth` | `number` | `480` | Widest a toast gets, so it doesn't stretch across tablets and web |
 
 ### `useToast()`
 
-Returns `{ showToast, hideToast, hideAll }`. `showToast(options)` returns the toast's id. The 1.1 shorthand `showToast(message, type?, duration?, position?)` still works. `useToast` throws if it's used outside `ToastProvider`.
+Returns `{ showToast, updateToast, hideToast, hideAll }`. `showToast(options)` returns the toast's id. The 1.1 shorthand `showToast(message, type?, duration?, position?)` still works. `useToast` throws if it's used outside `ToastProvider`.
 
 ## 🎨 Examples
 
@@ -175,6 +183,30 @@ toast.show({
   textStyle: { fontSize: 18, fontWeight: 'bold' },
   containerStyle: { backgroundColor: '#9c27b0', borderRadius: 20 },
 });
+```
+
+### No duplicate toasts
+
+Give a toast an `id`. Showing it again while it's on screen updates it and restarts its countdown, instead of stacking a copy:
+
+```jsx
+api.onError(() => toast.error('You are offline', { id: 'network' }));
+```
+
+### Update a toast in place
+
+```jsx
+const id = toast.info('Uploading… 0%', { duration: Infinity });
+upload.onProgress((p) => toast.update(id, { message: `Uploading… ${p}%` }));
+upload.onDone(() => toast.update(id, { message: 'Upload complete', type: 'success', duration: 3000 }));
+```
+
+### Themes
+
+```jsx
+<ToastProvider theme="system">   {/* or "colored" (default), "light", "dark" */}
+  <App />
+</ToastProvider>
 ```
 
 ### Custom types
@@ -237,7 +269,9 @@ toast.info('New comment on your post', {
 | `info` | `#2196f3` | ℹ |
 | `loading` | `#323232` | spinner |
 
-Text is white at 16px. The container has an 8px border radius, 15px padding and a light shadow. `textStyle` and `containerStyle` are merged on top of these, so you only pass what you want to change.
+Holding a toast pauses its countdown, and the progress bar with it; releasing resumes it. This works on any toast you can interact with, but not on a `dismissible: false` toast that has no `onPress` or `action`, because taps pass through those.
+
+These are the colors in the default `'colored'` theme. Text is white at 16px. The container has an 8px border radius, 15px padding and a light shadow. `textStyle` and `containerStyle` are merged on top of these, so you only pass what you want to change.
 
 ## 🆚 Compared with react-native-toast-message
 
