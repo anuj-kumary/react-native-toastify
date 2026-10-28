@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "expo": "~55.0.0",
+    "expo": "~54.0.0",
     "react-native-safe-area-context": "*",
     "react-native-toastify-expo": "^1.2.0"
   }
