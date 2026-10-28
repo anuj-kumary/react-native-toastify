@@ -25,8 +25,6 @@ export const Toast: React.FC<ToastProps> = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
 
-  console.log('Toast: Component rendered with:', { message, type, position });
-
   const toastTypes = {
     success: {
       backgroundColor: '#4caf50',
@@ -55,7 +53,6 @@ export const Toast: React.FC<ToastProps> = ({
   };
 
   useEffect(() => {
-    console.log('Toast: useEffect triggered, starting animation');
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -70,7 +67,6 @@ export const Toast: React.FC<ToastProps> = ({
     ]).start();
 
     const timer = setTimeout(() => {
-      console.log('Toast: Timer expired, starting hide animation');
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -83,7 +79,6 @@ export const Toast: React.FC<ToastProps> = ({
           useNativeDriver: true,
         })
       ]).start(() => {
-        console.log('Toast: Hide animation completed, calling onClose');
         onClose?.();
       });
     }, duration);
