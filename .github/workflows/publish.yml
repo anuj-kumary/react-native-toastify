@@ -22,3 +22,25 @@ jobs:
       - run: npm install -g npm@11
       - run: npm ci
       - run: npm publish --provenance --access public --loglevel verbose
+
+  # Mirror to GitHub Packages so the repo's Packages sidebar shows the current version.
+  # GitHub Packages only accepts scoped names, so the name is rewritten for this publish only.
+  github-packages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: '@anuj-kumary'
+      - run: npm ci
+      - run: |
+          npm pkg set name=@anuj-kumary/react-native-toastify-expo
+          npm pkg set publishConfig.registry=https://npm.pkg.github.com
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
