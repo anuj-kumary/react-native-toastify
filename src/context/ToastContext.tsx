@@ -1,17 +1,22 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { Keyboard, KeyboardEvent, View, StyleSheet, StatusBar, Platform } from 'react-native';
-import { Toast, ToastPosition, ToastProps, ToastType, ToastTypeStyle } from '../components/Toast/Toast';
+import { Keyboard, KeyboardEvent, View, StyleSheet, StatusBar, Platform, useColorScheme } from 'react-native';
+import { Toast, ToastPosition, ToastProps, ToastTheme, ToastType, ToastTypeStyle } from '../components/Toast/Toast';
 import { registerToastController, ToastConfig } from '../toast';
 
 export type { ToastConfig } from '../toast';
 
 interface ToastItem extends Omit<ToastProps, 'onClose'> {
   id: string;
+  /** React key. Separate from id, so a toast can reuse the id of one that is still animating out. */
+  key: string;
+  revision: number;
 }
 
 type ToastContextType = {
   /** Shows a toast and returns its id. */
   showToast: (message: string | ToastConfig, type?: ToastType, duration?: number, position?: ToastPosition) => string;
+  /** Changes a toast on screen and restarts its countdown. */
+  updateToast: (id: string, config: Partial<ToastConfig>) => void;
   hideToast: (id: string) => void;
   hideAll: () => void;
 };
@@ -34,6 +39,10 @@ export interface ToastProviderProps {
   types?: Record<string, ToastTypeStyle>;
   /** Default custom layout for every toast; a toast's own `render` takes precedence. */
   render?: ToastProps['render'];
+  /** 'colored' (default), 'light', 'dark', or 'system' to follow the device's color scheme. */
+  theme?: ToastTheme | 'system';
+  /** Widest a toast gets, so it doesn't stretch across tablets and web. Defaults to 480. */
+  maxWidth?: number;
 }
 
 type Insets = { top: number; bottom: number };
@@ -65,8 +74,12 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   showProgress = false,
   types,
   render,
+  theme = 'colored',
+  maxWidth = 480,
 }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const colorScheme = useColorScheme();
+  const resolvedTheme: ToastTheme = theme === 'system' ? (colorScheme === 'dark' ? 'dark' : 'light') : theme;
   const insets = useContext(SafeAreaInsetsContext) ?? fallbackInsets;
   const keyboardHeight = useKeyboardHeight(avoidKeyboard);
   // Read through a ref so the callbacks below stay stable for the global controller.
@@ -78,7 +91,9 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     const { duration: defaultDuration, position: defaultPosition, max: maxVisible, showProgress: defaultProgress } = options.current;
     const newToast: ToastItem = {
       ...config,
-      id: Math.random().toString(36).slice(2, 11),
+      id: config.id ?? randomId(),
+      key: randomId(),
+      revision: 0,
       type: config.type || type || 'info',
       duration: config.duration || dur || defaultDuration,
       position: config.position || pos || defaultPosition,
@@ -86,12 +101,18 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
       visible: true,
     };
     setToasts((currentToasts) => {
+      const existing = config.id ? currentToasts.find((t) => t.visible && t.id === config.id) : undefined;
+      if (existing) {
+        return currentToasts.map((t) =>
+          t === existing ? { ...newToast, key: t.key, revision: t.revision + 1 } : t,
+        );
+      }
       const next = [...currentToasts, newToast];
       const shown = next.filter((t) => t.visible && t.position === newToast.position);
       const excess = maxVisible ? shown.length - maxVisible : 0;
       if (excess <= 0) return next;
-      const dropped = new Set(shown.slice(0, excess).map((t) => t.id));
-      return next.map((t) => (dropped.has(t.id) ? { ...t, visible: false } : t));
+      const dropped = new Set(shown.slice(0, excess).map((t) => t.key));
+      return next.map((t) => (dropped.has(t.key) ? { ...t, visible: false } : t));
     });
     return newToast.id;
   }, []);
@@ -106,11 +127,13 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   }, []);
 
   const updateToast = useCallback((id: string, config: Partial<ToastConfig>) => {
-    setToasts((currentToasts) => currentToasts.map((t) => (t.id === id ? { ...t, ...config } : t)));
+    setToasts((currentToasts) =>
+      currentToasts.map((t) => (t.visible && t.id === id ? { ...t, ...config, id, revision: t.revision + 1 } : t)),
+    );
   }, []);
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((currentToasts) => currentToasts.filter((t) => t.id !== id));
+  const removeToast = useCallback((key: string) => {
+    setToasts((currentToasts) => currentToasts.filter((t) => t.key !== key));
   }, []);
 
   useEffect(
@@ -125,19 +148,21 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     [showToast, hideToast, hideAll, updateToast],
   );
 
-  const renderToast = (toast: ToastItem) => (
-    <Toast
-      key={toast.id}
-      {...toast}
-      render={toast.render ?? render}
-      typeStyle={types?.[toast.type]}
-      containerStyle={{ ...toastSpacing, ...toast.containerStyle }}
-      onClose={() => removeToast(toast.id)}
-    />
+  const renderToast = ({ key, ...toast }: ToastItem) => (
+    <View key={key} style={[styles.slot, { maxWidth }]} pointerEvents="box-none" testID="toast-slot">
+      <Toast
+        {...toast}
+        render={toast.render ?? render}
+        typeStyle={types?.[toast.type]}
+        theme={resolvedTheme}
+        containerStyle={{ ...toastSpacing, ...toast.containerStyle }}
+        onClose={() => removeToast(key)}
+      />
+    </View>
   );
 
   return (
-    <ToastContext.Provider value={{ showToast, hideToast, hideAll }}>
+    <ToastContext.Provider value={{ showToast, updateToast, hideToast, hideAll }}>
       {children}
       <View style={styles.toastContainer} pointerEvents="box-none">
         <View
@@ -171,6 +196,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
+    alignItems: 'center',
+  },
+  // Full width on phones; capped and centered by maxWidth on tablets and web.
+  slot: {
+    width: '100%',
   },
   // The first bottom toast sits lowest; later ones stack above it.
   bottomStack: {
@@ -179,6 +209,8 @@ const styles = StyleSheet.create({
 });
 
 const toastSpacing = { marginVertical: 5 };
+
+const randomId = () => Math.random().toString(36).slice(2, 11);
 
 // iOS reports the keyboard before it animates in; Android only after.
 const keyboardEvents =

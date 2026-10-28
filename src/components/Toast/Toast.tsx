@@ -16,6 +16,8 @@ export type BuiltInToastType = 'success' | 'error' | 'info' | 'warning' | 'loadi
 /** A built-in type, or a custom one registered through `<ToastProvider types>`. */
 export type ToastType = BuiltInToastType | (string & {});
 export type ToastPosition = 'top' | 'bottom';
+/** 'colored' fills the card with the type's color; 'light' and 'dark' use a neutral card with a colored accent. */
+export type ToastTheme = 'colored' | 'light' | 'dark';
 
 export interface ToastAction {
   label: string;
@@ -65,6 +67,10 @@ export interface ToastProps {
   render?: (toast: ToastRenderInfo) => React.ReactNode;
   /** Overrides the look of `type`. ToastProvider sets this from its `types` prop. */
   typeStyle?: ToastTypeStyle;
+  /** Defaults to 'colored'. ToastProvider sets this from its `theme` prop. */
+  theme?: ToastTheme;
+  /** Changing this restarts the countdown. ToastProvider bumps it when a toast is updated. */
+  revision?: number;
   /** Set to false to play the hide animation and then call onClose. */
   visible?: boolean;
   onClose?: () => void;
@@ -77,7 +83,13 @@ const builtInTypes: Record<BuiltInToastType, ToastTypeStyle> = {
   error: { backgroundColor: '#f44336', icon: '✕' },
   warning: { backgroundColor: '#ff9800', icon: '⚠' },
   info: { backgroundColor: '#2196f3', icon: 'ℹ' },
-  loading: { backgroundColor: '#323232', icon: <ActivityIndicator color="#fff" size="small" /> },
+  loading: { backgroundColor: '#323232' },
+};
+
+const palettes: Record<ToastTheme, { card?: string; text: string; accent?: string }> = {
+  colored: { text: '#fff', accent: '#fff' },
+  light: { card: '#ffffff', text: '#1f1f1f' },
+  dark: { card: '#262626', text: '#f5f5f5' },
 };
 
 const ANIMATION_MS = 300;
@@ -99,6 +111,8 @@ export const Toast: React.FC<ToastProps> = ({
   showProgress = false,
   render,
   typeStyle,
+  theme = 'colored',
+  revision = 0,
   visible = true,
   onClose,
   textStyle = {},
@@ -150,16 +164,45 @@ export const Toast: React.FC<ToastProps> = ({
     });
   }, [fadeAnim, translateY]);
 
-  // Restarts when duration changes, e.g. a promise toast going from loading (Infinity) to success.
+  // The countdown can be paused (press and hold, swipe), so it tracks what is left.
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const remaining = useRef(0);
+  const startedAt = useRef(0);
+  const paused = useRef(false);
+
+  const runCountdown = useCallback((ms: number) => {
+    clearTimeout(timer.current);
+    startedAt.current = Date.now();
+    remaining.current = ms;
+    timer.current = setTimeout(() => hide(), ms);
+    if (showProgress) {
+      Animated.timing(progress, { toValue: 0, duration: ms, easing: Easing.linear, useNativeDriver: false }).start();
+    }
+  }, [hide, showProgress, progress]);
+
+  // Restarts when duration changes (a promise toast going from loading to success) or the toast is updated.
   useEffect(() => {
     if (!Number.isFinite(duration)) return;
-    if (showProgress) {
-      progress.setValue(1);
-      Animated.timing(progress, { toValue: 0, duration, easing: Easing.linear, useNativeDriver: false }).start();
-    }
-    const timer = setTimeout(() => hide(), duration);
-    return () => clearTimeout(timer);
-  }, [duration, hide, showProgress, progress]);
+    paused.current = false;
+    progress.setValue(1);
+    runCountdown(duration);
+    return () => clearTimeout(timer.current);
+  }, [duration, revision, runCountdown, progress]);
+
+  const pause = () => {
+    if (paused.current || closing.current || !Number.isFinite(duration)) return;
+    paused.current = true;
+    clearTimeout(timer.current);
+    remaining.current -= Date.now() - startedAt.current;
+    progress.stopAnimation();
+  };
+  const resume = () => {
+    if (!paused.current || closing.current) return;
+    paused.current = false;
+    runCountdown(Math.max(remaining.current, 0));
+  };
+  const pauseRef = useRef({ pause, resume });
+  pauseRef.current = { pause, resume };
 
   useEffect(() => {
     if (!visible) hide();
@@ -168,23 +211,38 @@ export const Toast: React.FC<ToastProps> = ({
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderGrant: () => pauseRef.current.pause(),
       onPanResponderMove: (_, g) => translateX.setValue(g.dx),
       onPanResponderRelease: (_, g) => {
         if (Math.abs(g.dx) > SWIPE_DISTANCE || Math.abs(g.vx) > 0.5) {
           hideRef.current(g.dx > 0 ? 500 : -500);
         } else {
           Animated.spring(translateX, { toValue: 0, useNativeDriver: false }).start();
+          pauseRef.current.resume();
         }
       },
       onPanResponderTerminate: () => {
         Animated.spring(translateX, { toValue: 0, useNativeDriver: false }).start();
+        pauseRef.current.resume();
       },
     }),
   ).current;
 
   const style = { ...(builtInTypes[type as BuiltInToastType] ?? builtInTypes.info), ...typeStyle };
-  const resolvedIcon = icon !== undefined ? icon : style.icon;
-  const iconNode = typeof resolvedIcon === 'string' ? <Text style={styles.indicator}>{resolvedIcon}</Text> : resolvedIcon;
+  const palette = palettes[theme];
+  // The loading color is a dark grey, too close to the dark card, so it borrows the text color there.
+  const accent = palette.accent ?? (type === 'loading' ? palette.text : style.backgroundColor);
+  const textColor = { color: palette.text };
+  const resolvedIcon =
+    icon !== undefined
+      ? icon
+      : style.icon !== undefined
+        ? style.icon
+        : type === 'loading'
+          ? <ActivityIndicator color={accent} size="small" />
+          : null;
+  const iconNode =
+    typeof resolvedIcon === 'string' ? <Text style={[styles.indicator, { color: accent }]}>{resolvedIcon}</Text> : resolvedIcon;
   const pressable = dismissible || !!onPress;
   const interactive = pressable || !!action || !!render;
   const handlePress = () => {
@@ -201,14 +259,26 @@ export const Toast: React.FC<ToastProps> = ({
       <Animated.View
         testID="toast"
         style={[
-          render ? null : [styles.toast, { backgroundColor: style.backgroundColor }],
+          render
+            ? null
+            : [
+                styles.toast,
+                palette.card
+                  ? { backgroundColor: palette.card, borderLeftWidth: 4, borderLeftColor: accent }
+                  : { backgroundColor: style.backgroundColor },
+              ],
           { opacity: fadeAnim, transform: [{ translateY }] },
           containerStyle,
         ]}
       >
         {render ? (
           // Custom layouts may contain their own buttons, so they are not grouped into one accessibility element.
-          <Pressable onPress={pressable ? handlePress : undefined} disabled={!pressable} accessibilityLiveRegion="polite">
+          <Pressable
+            onPress={pressable ? handlePress : undefined}
+            onPressIn={pause}
+            onPressOut={resume}
+            accessibilityLiveRegion="polite"
+          >
             {render({ id, message, title, type, hide: () => hide() })}
           </Pressable>
         ) : (
@@ -216,7 +286,9 @@ export const Toast: React.FC<ToastProps> = ({
             <Pressable
               style={styles.body}
               onPress={pressable ? handlePress : undefined}
-              disabled={!pressable}
+              // Holding a toast pauses its countdown so it can be read.
+              onPressIn={pause}
+              onPressOut={resume}
               // With an action, leave the content ungrouped so the action button stays reachable by screen readers.
               accessible={!action}
               accessibilityRole="alert"
@@ -225,8 +297,8 @@ export const Toast: React.FC<ToastProps> = ({
             >
               {iconNode != null ? <View style={styles.icon}>{iconNode}</View> : null}
               <View style={styles.text}>
-                {title ? <Text style={[styles.title, textStyle]}>{title}</Text> : null}
-                <Text style={[styles.message, textStyle]}>{message}</Text>
+                {title ? <Text style={[styles.title, textColor, textStyle]}>{title}</Text> : null}
+                <Text style={[styles.message, textColor, textStyle]}>{message}</Text>
               </View>
             </Pressable>
             {action ? (
@@ -239,7 +311,7 @@ export const Toast: React.FC<ToastProps> = ({
                 hitSlop={8}
                 style={styles.action}
               >
-                <Text style={styles.actionText}>{action.label}</Text>
+                <Text style={[styles.actionText, { color: accent }]}>{action.label}</Text>
               </Pressable>
             ) : null}
             {showProgress && Number.isFinite(duration) ? (
@@ -247,6 +319,7 @@ export const Toast: React.FC<ToastProps> = ({
                 testID="toast-progress"
                 style={[
                   styles.progress,
+                  palette.card ? { backgroundColor: accent } : null,
                   { width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
                 ]}
               />

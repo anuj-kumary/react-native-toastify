@@ -4,6 +4,7 @@ export type {
   ToastType,
   BuiltInToastType,
   ToastPosition,
+  ToastTheme,
   ToastAction,
   ToastTypeStyle,
   ToastRenderInfo,
