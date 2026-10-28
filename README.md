@@ -155,6 +155,7 @@ Text is white at 16px. The container has an 8px border radius, 15px padding and 
 
 - React >= 16.8 (hooks)
 - React Native >= 0.60, or any Expo SDK
+- Optional: [`react-native-safe-area-context`](https://github.com/AppAndFlow/react-native-safe-area-context). Expo and the React Native template already include it. When it's installed and your app is wrapped in a `SafeAreaProvider`, top toasts sit just below the notch or Dynamic Island, and bottom toasts sit just above the home indicator. Without it, top toasts are offset by the status bar height.
 
 ## Contributing
 

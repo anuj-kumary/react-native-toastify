@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { View, StyleSheet, StatusBar, Platform } from 'react-native';
 import { Toast, ToastProps, ToastType } from '../components/Toast/Toast';
 
@@ -8,142 +8,71 @@ export interface ToastConfig extends Partial<Omit<ToastProps, 'message' | 'onClo
 
 interface ToastItem extends Omit<ToastProps, 'onClose'> {
   id: string;
-  createdAt: number;
 }
 
 type ToastContextType = {
   showToast: (message: string | ToastConfig, type?: ToastType, duration?: number, position?: 'top' | 'bottom') => void;
 };
 
+type Insets = { top: number; bottom: number };
+
+// Optional: apps with react-native-safe-area-context (Expo and the RN template ship it) get exact notch and
+// home-indicator insets. Without it, or without a SafeAreaProvider, fall back to the status bar height.
+let SafeAreaInsetsContext: React.Context<Insets | null> = createContext<Insets | null>(null);
+try {
+  SafeAreaInsetsContext = require('react-native-safe-area-context').SafeAreaInsetsContext ?? SafeAreaInsetsContext;
+} catch {
+  // not installed
+}
+
+// ponytail: 44 is the notched-iPhone status bar; install react-native-safe-area-context for exact insets.
+const fallbackInsets: Insets = {
+  top: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 44,
+  bottom: 0,
+};
+
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [dismissQueue, setDismissQueue] = useState<ToastItem[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const currentTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const processNextDismiss = useCallback(() => {
-    if (isProcessing || dismissQueue.length === 0) return;
-    
-    setIsProcessing(true);
-    const nextToast = dismissQueue[0];
-
-    // Set timer for this toast
-    currentTimerRef.current = setTimeout(() => {
-      
-      // Remove from both arrays
-      setToasts(prev => prev.filter(toast => toast.id !== nextToast.id));
-      setDismissQueue(prev => prev.slice(1));
-      setIsProcessing(false);
-    }, nextToast.duration);
-  }, [dismissQueue, isProcessing]);
-
-  // Process next dismiss when queue changes and not currently processing
-  useEffect(() => {
-    if (dismissQueue.length > 0 && !isProcessing) {
-      processNextDismiss();
-    }
-  }, [dismissQueue.length, isProcessing, processNextDismiss]);
+  const insets = useContext(SafeAreaInsetsContext) ?? fallbackInsets;
 
   const showToast = useCallback((messageOrConfig: string | ToastConfig, type?: ToastType, duration?: number, position?: 'top' | 'bottom') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const createdAt = Date.now();
-    
-    let newToast: ToastItem;
-    
-    if (typeof messageOrConfig === 'string') {
-      // Old API format: showToast(message, type, duration, position)
-      newToast = {
-        id,
-        message: messageOrConfig,
-        type: type || 'info',
-        duration: duration || 3000,
-        position: position || 'bottom',
-        createdAt
-      };
-    } else {
-      // New API format: showToast({ message, type, duration, position, textStyle, containerStyle })
-      newToast = {
-        id,
-        message: messageOrConfig.message,
-        type: messageOrConfig.type || type || 'info',
-        duration: messageOrConfig.duration || duration || 3000,
-        position: messageOrConfig.position || position || 'bottom',
-        textStyle: messageOrConfig.textStyle,
-        containerStyle: messageOrConfig.containerStyle,
-        createdAt
-      };
-    }
-
-    // Add to visible toasts immediately
-    setToasts((currentToasts) => [...currentToasts, newToast]);
-
-    // Add to dismiss queue
-    setDismissQueue((currentQueue) => [...currentQueue, newToast]);
-  }, []);
-
-  const handleClose = useCallback((id: string) => {
-    
-    // Clear current timer if this is the toast being processed
-    if (currentTimerRef.current && dismissQueue[0]?.id === id) {
-      clearTimeout(currentTimerRef.current);
-      currentTimerRef.current = null;
-      setIsProcessing(false);
-    }
-    
-    // Remove from both arrays
-    setToasts((currentToasts) => currentToasts.filter(toast => toast.id !== id));
-    setDismissQueue((currentQueue) => currentQueue.filter(toast => toast.id !== id));
-  }, [dismissQueue]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (currentTimerRef.current) {
-        clearTimeout(currentTimerRef.current);
-      }
+    const config: ToastConfig = typeof messageOrConfig === 'string' ? { message: messageOrConfig } : messageOrConfig;
+    const newToast: ToastItem = {
+      ...config,
+      id: Math.random().toString(36).slice(2, 11),
+      type: config.type || type || 'info',
+      duration: config.duration || duration || 3000,
+      position: config.position || position || 'bottom',
     };
+    setToasts((currentToasts) => [...currentToasts, newToast]);
   }, []);
 
-  // Get status bar height for proper top positioning
-  const getStatusBarHeight = () => {
-    if (Platform.OS === 'ios') {
-      return StatusBar.currentHeight || 20; // Reduced iOS status bar height
-    }
-    return StatusBar.currentHeight || 0;
-  };
+  // Each Toast runs its own timer and calls this once its hide animation finishes.
+  const handleClose = useCallback((id: string) => {
+    setToasts((currentToasts) => currentToasts.filter(toast => toast.id !== id));
+  }, []);
+
+  const renderToast = (toast: ToastItem) => (
+    <Toast
+      key={toast.id}
+      {...toast}
+      containerStyle={{ ...toastSpacing, ...toast.containerStyle }}
+      onClose={() => handleClose(toast.id)}
+    />
+  );
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <View style={styles.toastContainer} pointerEvents="none">
-        {toasts.map((toast, index) => {
-          // Position toast at the absolute top - no status bar offset
-          const topPosition = toast.position === 'top' ? 0 + (index * 70) : undefined;
-          const bottomPosition = toast.position === 'bottom' ? 20 + (index * 70) : undefined;
-          
-          // Merge default positioning styles with custom containerStyle
-          const mergedContainerStyle = {
-            position: 'absolute',
-            top: topPosition,
-            bottom: bottomPosition,
-            left: 20,
-            right: 20,
-            zIndex: 9999,
-            elevation: 5,
-            ...toast.containerStyle
-          };
-          
-          return (
-            <Toast
-              key={toast.id}
-              {...toast}
-              containerStyle={mergedContainerStyle}
-              onClose={() => handleClose(toast.id)}
-            />
-          );
-        })}
+      <View style={styles.toastContainer} pointerEvents="box-none">
+        <View style={[styles.stack, { top: insets.top + 10 }]} pointerEvents="box-none" testID="toast-stack-top">
+          {toasts.filter(toast => toast.position === 'top').map(renderToast)}
+        </View>
+        <View style={[styles.stack, styles.bottomStack, { bottom: insets.bottom + 20 }]} pointerEvents="box-none" testID="toast-stack-bottom">
+          {toasts.filter(toast => toast.position === 'bottom').map(renderToast)}
+        </View>
       </View>
     </ToastContext.Provider>
   );
@@ -151,15 +80,23 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 const styles = StyleSheet.create({
   toastContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
+    ...StyleSheet.absoluteFillObject,
     zIndex: 9999,
+    elevation: 9999,
+  },
+  // Toasts stack in normal flow, so top and bottom toasts never offset each other.
+  stack: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+  },
+  // The first bottom toast sits lowest; later ones stack above it.
+  bottomStack: {
+    flexDirection: 'column-reverse',
   },
 });
+
+const toastSpacing = { marginVertical: 5 };
 
 export const useToast = () => {
   const context = useContext(ToastContext);
@@ -167,4 +104,4 @@ export const useToast = () => {
     throw new Error('useToast must be used within a ToastProvider');
   }
   return context;
-}; 
+};
