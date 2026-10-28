@@ -50,7 +50,14 @@ CI must pass before a pull request can be merged into `main`.
 
 ## Releases
 
-Maintainers publish to npm by creating a GitHub release (`vX.Y.Z`) after bumping `version` in `package.json`.
+Maintainers release from GitHub; nobody publishes from their own machine:
+
+1. Bump `version` in `package.json` in a pull request, and merge it.
+2. Create a GitHub release tagged `vX.Y.Z` on `main`. That starts `.github/workflows/publish.yml`.
+3. The workflow builds the package and **stages** it on npm through trusted publishing (no tokens, with provenance). It also publishes it to GitHub Packages.
+4. Open the package on npmjs.com → **Staged Packages** and click **Approve** (2FA required), or run `npm stage approve <stage-id>`. Only then does the version go live.
+
+Staging means a compromised CI run can't put a release on npm without a maintainer's approval.
 
 ## Code of conduct
 
