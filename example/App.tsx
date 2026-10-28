@@ -69,12 +69,21 @@ function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }
               .catch(() => {})
           }
         />
-        <Button title="Top position" onPress={() => toast.success('I am at the top', { position: 'top' })} />
-        <Button title="Custom icon" onPress={() => toast.show({ message: 'Level up!', icon: '🎉', position: 'top' })} />
+        <Button
+          title="Top position"
+          onPress={() => toast.success('I am at the top', { position: 'top' })}
+        />
+        <Button
+          title="Custom icon"
+          onPress={() => toast.show({ message: 'Level up!', icon: '🎉', position: 'top' })}
+        />
         <Button
           title="Show until hidden"
           onPress={() => {
-            offlineToastId = toast.warning('You are offline', { duration: Infinity, dismissible: false });
+            offlineToastId = toast.warning('You are offline', {
+              duration: Infinity,
+              dismissible: false,
+            });
           }}
         />
         <Button title="Hide it" onPress={() => toast.hide(offlineToastId)} />
@@ -91,7 +100,10 @@ function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }
             })
           }
         />
-        <Button title="Custom type" onPress={() => toast.show({ type: 'upload', message: 'Uploading photo…' })} />
+        <Button
+          title="Custom type"
+          onPress={() => toast.show({ type: 'upload', message: 'Uploading photo…' })}
+        />
         <Button
           title="Fully custom layout"
           onPress={() =>
@@ -103,17 +115,28 @@ function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }
                 <View style={styles.card}>
                   <Text style={styles.avatar}>👩</Text>
                   <Text style={styles.cardText}>{message}</Text>
-                  <Button title="Reply" onPress={() => { toast.success('Opening chat'); hide(); }} />
+                  <Button
+                    title="Reply"
+                    onPress={() => {
+                      toast.success('Opening chat');
+                      hide();
+                    }}
+                  />
                 </View>
               ),
             })
           }
         />
         <Button title={`Theme: ${theme} (tap to change)`} onPress={onNextTheme} />
-        <Button title="Same id twice (no duplicates)" onPress={() => toast.error('You are offline', { id: 'network' })} />
+        <Button
+          title="Same id twice (no duplicates)"
+          onPress={() => toast.error('You are offline', { id: 'network' })}
+        />
         <Button title="Update in place" onPress={simulateUpload} />
         <Text style={styles.hint}>Hold a toast to pause its countdown.</Text>
-        <Text style={styles.hint}>Focus the field, then show a toast: it stays above the keyboard.</Text>
+        <Text style={styles.hint}>
+          Focus the field, then show a toast: it stays above the keyboard.
+        </Text>
         <TextInput style={styles.input} placeholder="Type here" />
       </ScrollView>
     </SafeAreaView>
@@ -125,7 +148,11 @@ export default function App() {
   const theme = themes[themeIndex];
   return (
     <SafeAreaProvider>
-      <ToastProvider max={3} theme={theme} types={{ upload: { backgroundColor: '#6200ee', icon: '⬆' } }}>
+      <ToastProvider
+        max={3}
+        theme={theme}
+        types={{ upload: { backgroundColor: '#6200ee', icon: '⬆' } }}
+      >
         <Demo theme={theme} onNextTheme={() => setThemeIndex((i) => (i + 1) % themes.length)} />
       </ToastProvider>
     </SafeAreaProvider>

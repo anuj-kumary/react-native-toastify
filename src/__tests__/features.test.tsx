@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { toast, ToastProvider, ToastProviderProps, useToast } from '..';
+import { toast, ToastProvider, type ToastProviderProps, useToast } from '..';
 
 jest.useFakeTimers();
 
@@ -120,7 +120,13 @@ describe('toast.promise', () => {
     let resolve!: (value: string) => void;
     const promise = new Promise<string>((r) => (resolve = r));
 
-    show(() => toast.promise(promise, { loading: 'Saving…', success: (name) => `Saved ${name}`, error: 'Failed' }));
+    show(() =>
+      toast.promise(promise, {
+        loading: 'Saving…',
+        success: (name) => `Saved ${name}`,
+        error: 'Failed',
+      }),
+    );
     advance(10_000);
     expect(screen.getByText('Saving…')).toBeTruthy();
 
@@ -136,7 +142,14 @@ describe('toast.promise', () => {
     const failing = Promise.reject(new Error('offline'));
 
     let returned!: Promise<unknown>;
-    show(() => (returned = toast.promise(failing, { loading: 'Saving…', success: 'Saved', error: (e) => `Failed: ${(e as Error).message}` })));
+    show(
+      () =>
+        (returned = toast.promise(failing, {
+          loading: 'Saving…',
+          success: 'Saved',
+          error: (e) => `Failed: ${(e as Error).message}`,
+        })),
+    );
     await act(async () => {
       await expect(returned).rejects.toThrow('offline');
     });

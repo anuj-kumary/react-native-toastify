@@ -9,9 +9,14 @@
     "README.md"
   ],
   "scripts": {
-    "test": "jest",
-    "lint": "eslint .",
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "jest",
+    "prepare": "simple-git-hooks",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -50,18 +55,24 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.9",
+    "@eslint-react/eslint-plugin": "^5.28.8",
     "@eslint/js": "^10.0.1",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.3.0",
     "eslint": "^10.13.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.17.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "jest": "^30.5.2",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.10",
     "react": "^18.3.1",
     "react-native": "^0.76.9",
     "react-test-renderer": "18.3.1",
+    "simple-git-hooks": "^2.14.0",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.72.1"
   },
@@ -76,5 +87,15 @@
       "/node_modules/",
       "/lib/"
     ]
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,yml,yaml}": "prettier --write"
   }
 }

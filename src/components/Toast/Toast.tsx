@@ -124,27 +124,34 @@ export const Toast: React.FC<ToastProps> = ({
   const translateX = useRef(new Animated.Value(0)).current;
   const progress = useRef(new Animated.Value(1)).current;
   // Callers usually pass inline callbacks; reading them from refs keeps the timers from restarting on every render.
-  const callbacks = useRef({ onClose, onPress, onShow, onHide });
-  callbacks.current = { onClose, onPress, onShow, onHide };
-  const closing = useRef(false);
+  const callbacksRef = useRef({ onClose, onPress, onShow, onHide });
+  callbacksRef.current = { onClose, onPress, onShow, onHide };
+  const closingRef = useRef(false);
 
-  const hide = useCallback((swipeTo = 0) => {
-    if (closing.current) return;
-    closing.current = true;
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 0, duration: ANIMATION_MS, useNativeDriver: true }),
-      swipeTo
-        ? Animated.timing(translateX, { toValue: swipeTo, duration: ANIMATION_MS, useNativeDriver: false })
-        : Animated.timing(translateY, {
-            toValue: position === 'top' ? -100 : 100,
-            duration: ANIMATION_MS,
-            useNativeDriver: true,
-          }),
-    ]).start(() => {
-      callbacks.current.onHide?.();
-      callbacks.current.onClose?.();
-    });
-  }, [fadeAnim, translateX, translateY, position]);
+  const hide = useCallback(
+    (swipeTo = 0) => {
+      if (closingRef.current) return;
+      closingRef.current = true;
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 0, duration: ANIMATION_MS, useNativeDriver: true }),
+        swipeTo
+          ? Animated.timing(translateX, {
+              toValue: swipeTo,
+              duration: ANIMATION_MS,
+              useNativeDriver: false,
+            })
+          : Animated.timing(translateY, {
+              toValue: position === 'top' ? -100 : 100,
+              duration: ANIMATION_MS,
+              useNativeDriver: true,
+            }),
+      ]).start(() => {
+        callbacksRef.current.onHide?.();
+        callbacksRef.current.onClose?.();
+      });
+    },
+    [fadeAnim, translateX, translateY, position],
+  );
   const hideRef = useRef(hide);
   hideRef.current = hide;
 
@@ -160,46 +167,54 @@ export const Toast: React.FC<ToastProps> = ({
       Animated.timing(fadeAnim, { toValue: 1, duration: ANIMATION_MS, useNativeDriver: true }),
       Animated.timing(translateY, { toValue: 0, duration: ANIMATION_MS, useNativeDriver: true }),
     ]).start(({ finished }) => {
-      if (finished) callbacks.current.onShow?.();
+      if (finished) callbacksRef.current.onShow?.();
     });
   }, [fadeAnim, translateY]);
 
   // The countdown can be paused (press and hold, swipe), so it tracks what is left.
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const remaining = useRef(0);
-  const startedAt = useRef(0);
-  const paused = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const remainingRef = useRef(0);
+  const startedAtRef = useRef(0);
+  const pausedRef = useRef(false);
 
-  const runCountdown = useCallback((ms: number) => {
-    clearTimeout(timer.current);
-    startedAt.current = Date.now();
-    remaining.current = ms;
-    timer.current = setTimeout(() => hide(), ms);
-    if (showProgress) {
-      Animated.timing(progress, { toValue: 0, duration: ms, easing: Easing.linear, useNativeDriver: false }).start();
-    }
-  }, [hide, showProgress, progress]);
+  const runCountdown = useCallback(
+    (ms: number) => {
+      clearTimeout(timerRef.current);
+      startedAtRef.current = Date.now();
+      remainingRef.current = ms;
+      timerRef.current = setTimeout(() => hide(), ms);
+      if (showProgress) {
+        Animated.timing(progress, {
+          toValue: 0,
+          duration: ms,
+          easing: Easing.linear,
+          useNativeDriver: false,
+        }).start();
+      }
+    },
+    [hide, showProgress, progress],
+  );
 
   // Restarts when duration changes (a promise toast going from loading to success) or the toast is updated.
   useEffect(() => {
     if (!Number.isFinite(duration)) return;
-    paused.current = false;
+    pausedRef.current = false;
     progress.setValue(1);
     runCountdown(duration);
-    return () => clearTimeout(timer.current);
+    return () => clearTimeout(timerRef.current);
   }, [duration, revision, runCountdown, progress]);
 
   const pause = () => {
-    if (paused.current || closing.current || !Number.isFinite(duration)) return;
-    paused.current = true;
-    clearTimeout(timer.current);
-    remaining.current -= Date.now() - startedAt.current;
+    if (pausedRef.current || closingRef.current || !Number.isFinite(duration)) return;
+    pausedRef.current = true;
+    clearTimeout(timerRef.current);
+    remainingRef.current -= Date.now() - startedAtRef.current;
     progress.stopAnimation();
   };
   const resume = () => {
-    if (!paused.current || closing.current) return;
-    paused.current = false;
-    runCountdown(Math.max(remaining.current, 0));
+    if (!pausedRef.current || closingRef.current) return;
+    pausedRef.current = false;
+    runCountdown(Math.max(remainingRef.current, 0));
   };
   const pauseRef = useRef({ pause, resume });
   pauseRef.current = { pause, resume };
@@ -234,19 +249,23 @@ export const Toast: React.FC<ToastProps> = ({
   const accent = palette.accent ?? (type === 'loading' ? palette.text : style.backgroundColor);
   const textColor = { color: palette.text };
   const resolvedIcon =
-    icon !== undefined
-      ? icon
-      : style.icon !== undefined
-        ? style.icon
-        : type === 'loading'
-          ? <ActivityIndicator color={accent} size="small" />
-          : null;
+    icon !== undefined ? (
+      icon
+    ) : style.icon !== undefined ? (
+      style.icon
+    ) : type === 'loading' ? (
+      <ActivityIndicator color={accent} size="small" />
+    ) : null;
   const iconNode =
-    typeof resolvedIcon === 'string' ? <Text style={[styles.indicator, { color: accent }]}>{resolvedIcon}</Text> : resolvedIcon;
+    typeof resolvedIcon === 'string' ? (
+      <Text style={[styles.indicator, { color: accent }]}>{resolvedIcon}</Text>
+    ) : (
+      resolvedIcon
+    );
   const pressable = dismissible || !!onPress;
   const interactive = pressable || !!action || !!render;
   const handlePress = () => {
-    callbacks.current.onPress?.();
+    callbacksRef.current.onPress?.();
     if (dismissible) hide();
   };
 
@@ -320,7 +339,12 @@ export const Toast: React.FC<ToastProps> = ({
                 style={[
                   styles.progress,
                   palette.card ? { backgroundColor: accent } : null,
-                  { width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) },
+                  {
+                    width: progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    }),
+                  },
                 ]}
               />
             ) : null}

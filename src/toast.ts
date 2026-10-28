@@ -1,7 +1,8 @@
 import type { ToastPosition, ToastProps, ToastType } from './components/Toast/Toast';
 
-export interface ToastConfig
-  extends Partial<Omit<ToastProps, 'message' | 'onClose' | 'visible' | 'id' | 'typeStyle' | 'theme' | 'revision'>> {
+export interface ToastConfig extends Partial<
+  Omit<ToastProps, 'message' | 'onClose' | 'visible' | 'id' | 'typeStyle' | 'theme' | 'revision'>
+> {
   message: string;
   /** Showing a toast with the id of one already on screen updates that toast instead of adding another. */
   id?: string;
@@ -30,7 +31,10 @@ export function registerToastController(next: ToastController) {
 
 function withController<T>(fn: (c: ToastController) => T, fallback: T): T {
   if (!controller) {
-    if (__DEV__) console.warn('react-native-toastify-expo: toast was called but no <ToastProvider> is mounted.');
+    if (__DEV__)
+      console.warn(
+        'react-native-toastify-expo: toast was called but no <ToastProvider> is mounted.',
+      );
     return fallback;
   }
   return fn(controller);
@@ -41,7 +45,7 @@ const typed = (type: ToastType) => (message: string, options?: ToastOptions) =>
 
 type PromiseMessage<T> = string | ((value: T) => string);
 
-const resolveMessage = <T,>(message: PromiseMessage<T>, value: T) =>
+const resolveMessage = <T>(message: PromiseMessage<T>, value: T) =>
   typeof message === 'function' ? message(value) : message;
 
 /** Show and hide toasts from anywhere: API clients, stores, navigation. Needs a mounted ToastProvider. */
@@ -52,7 +56,8 @@ export const toast = {
   warning: typed('warning'),
   info: typed('info'),
   /** Changes a toast on screen (message, type, title, duration…) and restarts its countdown. */
-  update: (id: string, options: Partial<ToastConfig>) => withController((c) => c.update(id, options), undefined),
+  update: (id: string, options: Partial<ToastConfig>) =>
+    withController((c) => c.update(id, options), undefined),
   hide: (id: string) => withController((c) => c.hide(id), undefined),
   hideAll: () => withController((c) => c.hideAll(), undefined),
   /**
@@ -64,10 +69,16 @@ export const toast = {
     messages: { loading: string; success: PromiseMessage<T>; error: PromiseMessage<unknown> },
     options?: ToastOptions,
   ): Promise<T> {
-    const id = toast.show({ ...options, message: messages.loading, type: 'loading', duration: Infinity });
+    const id = toast.show({
+      ...options,
+      message: messages.loading,
+      type: 'loading',
+      duration: Infinity,
+    });
     const settle = (type: ToastType, message: string) =>
       withController(
-        (c) => c.update(id, { message, type, duration: options?.duration ?? c.defaults().duration }),
+        (c) =>
+          c.update(id, { message, type, duration: options?.duration ?? c.defaults().duration }),
         undefined,
       );
     promise.then(
