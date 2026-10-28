@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, StyleSheet, Animated, Platform } from 'react-native';
+import { Text, StyleSheet, Animated, Platform, AccessibilityInfo } from 'react-native';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -24,6 +24,9 @@ export const Toast: React.FC<ToastProps> = ({
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
+  // Callers usually pass an inline onClose; reading it from a ref keeps the timer from restarting on every parent render.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const toastTypes = {
     success: {
@@ -53,6 +56,13 @@ export const Toast: React.FC<ToastProps> = ({
   };
 
   useEffect(() => {
+    // Android announces through accessibilityLiveRegion below; iOS needs an explicit announcement.
+    if (Platform.OS === 'ios') {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [message]);
+
+  useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -79,12 +89,12 @@ export const Toast: React.FC<ToastProps> = ({
           useNativeDriver: true,
         })
       ]).start(() => {
-        onClose?.();
+        onCloseRef.current?.();
       });
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [fadeAnim, translateY, duration, onClose, position]);
+  }, [fadeAnim, translateY, duration, position]);
 
   return (
     <Animated.View
@@ -98,6 +108,9 @@ export const Toast: React.FC<ToastProps> = ({
         containerStyle
       ]}
       pointerEvents="none"
+      accessible
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
     >
       <Text style={[styles.indicator, { color: toastTypes[type].iconColor }]}>
         {toastTypes[type].indicator}
