@@ -1,6 +1,3 @@
-# Source files (will be compiled to lib/)
-src/
-
 # Development files
 .vscode/
 .expo/
