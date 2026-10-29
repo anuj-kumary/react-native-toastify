@@ -1,0 +1,45 @@
+# Greets first-time contributors and thanks everyone whose PR is merged.
+# pull_request_target so it can comment on PRs from forks; it never checks out PR code.
+name: Welcome
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened, closed]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  first-interaction:
+    if: github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v3
+        with:
+          issue_message: |
+            Thanks for opening your first issue here! 🎉 A maintainer will take a look soon.
+
+            If react-native-toastify-expo is useful to you, a ⭐ on the repo helps other developers find it.
+          pr_message: |
+            Thanks for your first pull request! 🎉 CI runs once a maintainer approves it, and we'll review it soon.
+
+            While you wait, a ⭐ on the repo helps other developers find the library.
+
+  thank-merged:
+    if: >-
+      github.event.action == 'closed' && github.event.pull_request.merged &&
+      github.event.pull_request.user.login != github.repository_owner &&
+      github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "Merged, thank you @$AUTHOR! 🚀 This ships in the next release, and you'll show up under Contributors in the README within a day.
+
+          If you'd like to keep an eye on the project, a ⭐ helps other developers find it."

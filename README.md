@@ -13,6 +13,8 @@
 
 ▶️ **[Try it live in Expo Snack](https://snack.expo.dev/@git/github.com/anuj-kumary/react-native-toastify:example)**: runs in your browser, or on your phone with Expo Go.
 
+⭐ **Like it? [Star the repo](https://github.com/anuj-kumary/react-native-toastify/stargazers)**: it's how other developers find it.
+
 ---
 
 ## 📱 Demo
@@ -366,6 +368,14 @@ Contributions are welcome, including your first one!
 - **Setup takes a minute:** `npm ci` installs everything, including a pre-commit hook that formats and lint-fixes your changes. The [contributing guide](CONTRIBUTING.md) covers the workflow and code style.
 - **Found a bug or have an idea?** [Open an issue](https://github.com/anuj-kumary/react-native-toastify/issues/new/choose). The forms ask for exactly what's needed.
 - Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report security issues privately as described in [SECURITY.md](SECURITY.md).
+
+### Contributors
+
+Thanks to everyone who has helped build this library:
+
+<a href="https://github.com/anuj-kumary/react-native-toastify/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=anuj-kumary/react-native-toastify" alt="Contributors" />
+</a>
 
 If this library saves you time, a ⭐ on GitHub helps other developers find it.
 
