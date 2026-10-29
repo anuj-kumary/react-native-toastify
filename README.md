@@ -118,6 +118,7 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | `action` | `{ label: string, onPress: () => void }` | none | Button on the toast. Pressing it also dismisses the toast. |
 | `icon` | `ReactNode` | the type's icon | Custom icon: a string, emoji or element. `null` hides it. |
 | `dismissible` | `boolean` | `true` | Tap or swipe sideways to dismiss |
+| `accessibilityHint` | `string` | the provider's hint, or `'Double tap to dismiss'` | Screen-reader dismiss hint for the default layout. Per-toast value wins; ignored when `dismissible` is `false`. |
 | `onPress` | `() => void` | none | Called when the toast is tapped, before it's dismissed |
 | `onShow` | `() => void` | none | Called once the toast has animated in |
 | `onHide` | `() => void` | none | Called once the toast is gone, whatever dismissed it |
@@ -136,6 +137,7 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | `offset` | `{ top?: number, bottom?: number }` | `{ top: 10, bottom: 20 }` | Extra distance from the safe area |
 | `avoidKeyboard` | `boolean` | `true` | Moves bottom toasts above the keyboard while it's open |
 | `showProgress` | `boolean` | `false` | Shows the countdown bar on every toast |
+| `accessibilityHint` | `string` | `'Double tap to dismiss'` | Default screen-reader dismiss hint; set a translation for your app's locale. A toast can override it. |
 | `types` | `Record<string, { backgroundColor, icon? }>` | none | Registers custom types, or restyles the built-in ones |
 | `render` | `(toast) => ReactNode` | none | Default custom layout for every toast |
 | `theme` | `'colored' \| 'light' \| 'dark' \| 'system'` | `'colored'` | `'colored'` fills the card with the type's color. `'light'` and `'dark'` use a neutral card with a colored accent. `'system'` follows the device. |

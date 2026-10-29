@@ -55,6 +55,8 @@ export interface ToastProviderProps {
   avoidKeyboard?: boolean;
   /** Default for each toast's `showProgress`. Defaults to false. */
   showProgress?: boolean;
+  /** Default screen-reader dismiss hint. A toast's own hint takes precedence. */
+  accessibilityHint?: string;
   /** Custom toast types, or new looks for the built-in ones, e.g. { upload: { backgroundColor: '#6200ee', icon: '⬆' } }. */
   types?: Record<string, ToastTypeStyle>;
   /** Default custom layout for every toast; a toast's own `render` takes precedence. */
@@ -93,6 +95,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   offset,
   avoidKeyboard = true,
   showProgress = false,
+  accessibilityHint,
   types,
   render,
   theme = 'colored',
@@ -200,6 +203,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
       <Toast
         {...toast}
         render={toast.render ?? render}
+        accessibilityHint={toast.accessibilityHint ?? accessibilityHint}
         typeStyle={types?.[toast.type]}
         theme={resolvedTheme}
         containerStyle={{ ...toastSpacing, ...toast.containerStyle }}

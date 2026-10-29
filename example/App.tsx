@@ -36,6 +36,12 @@ function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }
         <Button title="Error" onPress={() => toast.error('Something went wrong')} />
         <Button title="Warning" onPress={() => toast.warning('Please check your input')} />
         <Button title="Info" onPress={() => toast.info('New update available')} />
+        <Button
+          title="Spanish dismiss hint"
+          onPress={() =>
+            toast.success('Guardado', { accessibilityHint: 'Toca dos veces para cerrar' })
+          }
+        />
 
         <Button
           title="Title + Undo action"
