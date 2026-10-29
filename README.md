@@ -134,7 +134,7 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 | `position` | `'top' \| 'bottom'` | `'bottom'` | Default position |
 | `max` | `number` | unlimited | Most toasts visible per position. When a new toast would exceed it, the oldest is dismissed. |
 | `offset` | `{ top?: number, bottom?: number }` | `{ top: 10, bottom: 20 }` | Extra distance from the safe area |
-| `avoidKeyboard` | `boolean` | `true` | Moves bottom toasts above the keyboard while it's open |
+| `avoidKeyboard` | `boolean` | `true` | Moves bottom toasts above the keyboard while it's open. It measures how much of the screen the keyboard covers, so it works whether the app draws edge-to-edge or its window resizes for the keyboard (Android `adjustResize`). |
 | `showProgress` | `boolean` | `false` | Shows the countdown bar on every toast |
 | `types` | `Record<string, { backgroundColor, icon? }>` | none | Registers custom types, or restyles the built-in ones |
 | `render` | `(toast) => ReactNode` | none | Default custom layout for every toast |
