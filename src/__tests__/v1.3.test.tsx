@@ -65,15 +65,59 @@ describe('keyboard avoidance', () => {
   });
   afterEach(() => jest.restoreAllMocks());
 
-  test('bottom toasts move above the keyboard and back', () => {
+  // A 390x844 screen with a 300 pt keyboard: its top edge is at y = 544.
+  const SCREEN = 844;
+  const KEYBOARD = 300;
+  const layout = (height: number) =>
+    fireEvent(screen.getByTestId('toast-layer'), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height } },
+    });
+  const keyboardShows = () =>
+    act(() =>
+      listeners.keyboardWillShow({
+        endCoordinates: { screenX: 0, screenY: SCREEN - KEYBOARD, width: 390, height: KEYBOARD },
+      }),
+    );
+  const bottomStack = () => screen.getByTestId('toast-stack-bottom');
+
+  test('iOS and edge-to-edge Android: the keyboard covers the layer, so toasts move above it', () => {
     renderProvider();
-    const bottomStack = () => screen.getByTestId('toast-stack-bottom');
+    layout(SCREEN);
     expect(bottomStack()).toHaveStyle({ bottom: 20 });
 
-    act(() => listeners.keyboardWillShow({ endCoordinates: { height: 300 } }));
-    expect(bottomStack()).toHaveStyle({ bottom: 300 + 20 });
+    keyboardShows();
+    expect(bottomStack()).toHaveStyle({ bottom: KEYBOARD + 20 });
 
     act(() => listeners.keyboardWillHide());
+    expect(bottomStack()).toHaveStyle({ bottom: 20 });
+  });
+
+  test('Android adjustResize: the layer already shrank above the keyboard, so toasts are not lifted twice', () => {
+    renderProvider();
+    layout(SCREEN);
+
+    // The window resize can arrive before or after the keyboard event.
+    keyboardShows();
+    layout(SCREEN - KEYBOARD);
+    expect(bottomStack()).toHaveStyle({ bottom: 20 });
+
+    act(() => listeners.keyboardWillHide());
+    layout(SCREEN);
+    expect(bottomStack()).toHaveStyle({ bottom: 20 });
+
+    layout(SCREEN - KEYBOARD);
+    keyboardShows();
+    expect(bottomStack()).toHaveStyle({ bottom: 20 });
+  });
+
+  test('a keyboard event with screenY 0 (iOS cross-fade transitions) is ignored', () => {
+    renderProvider();
+    layout(SCREEN);
+    act(() =>
+      listeners.keyboardWillShow({
+        endCoordinates: { screenX: 0, screenY: 0, width: 0, height: 0 },
+      }),
+    );
     expect(bottomStack()).toHaveStyle({ bottom: 20 });
   });
 
