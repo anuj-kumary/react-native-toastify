@@ -106,7 +106,13 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   const resolvedTheme: ToastTheme =
     theme === 'system' ? (colorScheme === 'dark' ? 'dark' : 'light') : theme;
   const insets = useContext(SafeAreaInsetsContext) ?? fallbackInsets;
-  const keyboardHeight = useKeyboardHeight(avoidKeyboard);
+  const keyboardTop = useKeyboardTop(avoidKeyboard);
+  const [layer, setLayer] = useState({ y: 0, height: 0 });
+  // How much of the toast layer the keyboard covers, as KeyboardAvoidingView computes it. That is the
+  // full keyboard on iOS and edge-to-edge Android, but 0 on Android windows that resize for the keyboard
+  // (adjustResize), where the layer already ends at the keyboard's top edge.
+  const keyboardOverlap =
+    keyboardTop === null ? 0 : Math.max(0, layer.y + layer.height - keyboardTop);
   // Read through a ref so the callbacks below stay stable for the global controller.
   const optionsRef = useRef({ duration, position, max, showProgress });
   optionsRef.current = { duration, position, max, showProgress };
@@ -215,7 +221,14 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   return (
     <ToastContext.Provider value={{ showToast, updateToast, hideToast, hideAll }}>
       {children}
-      <View style={styles.toastContainer} pointerEvents="box-none">
+      <View
+        style={styles.toastContainer}
+        pointerEvents="box-none"
+        testID="toast-layer"
+        onLayout={(e) =>
+          setLayer({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height })
+        }
+      >
         <View
           style={[styles.stack, { top: insets.top + (offset?.top ?? 10) }]}
           pointerEvents="box-none"
@@ -224,11 +237,14 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
           {toasts.filter((toast) => toast.position === 'top').map(renderToast)}
         </View>
         <View
-          // The keyboard height already includes the bottom inset.
+          // While the keyboard is open it covers the bottom inset, so only the overlap counts.
           style={[
             styles.stack,
             styles.bottomStack,
-            { bottom: (keyboardHeight || insets.bottom) + (offset?.bottom ?? 20) },
+            {
+              bottom:
+                (keyboardTop === null ? insets.bottom : keyboardOverlap) + (offset?.bottom ?? 20),
+            },
           ]}
           pointerEvents="box-none"
           testID="toast-stack-bottom"
@@ -273,20 +289,22 @@ const keyboardEvents =
     ? (['keyboardWillShow', 'keyboardWillHide'] as const)
     : (['keyboardDidShow', 'keyboardDidHide'] as const);
 
-function useKeyboardHeight(enabled: boolean) {
-  const [height, setHeight] = useState(0);
+// The keyboard's top edge in screen coordinates while it is open, otherwise null.
+function useKeyboardTop(enabled: boolean) {
+  const [top, setTop] = useState<number | null>(null);
   useEffect(() => {
     if (!enabled) return;
     const show = Keyboard.addListener(keyboardEvents[0], (e: KeyboardEvent) =>
-      setHeight(e.endCoordinates.height),
+      // iOS can report screenY 0 with "prefer cross-fade transitions"; KeyboardAvoidingView ignores it too.
+      setTop(e.endCoordinates.screenY > 0 ? e.endCoordinates.screenY : null),
     );
-    const hide = Keyboard.addListener(keyboardEvents[1], () => setHeight(0));
+    const hide = Keyboard.addListener(keyboardEvents[1], () => setTop(null));
     return () => {
       show.remove();
       hide.remove();
     };
   }, [enabled]);
-  return enabled ? height : 0;
+  return enabled ? top : null;
 }
 
 export const useToast = () => {
