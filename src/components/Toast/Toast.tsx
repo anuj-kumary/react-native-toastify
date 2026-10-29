@@ -55,6 +55,8 @@ export interface ToastProps {
   action?: ToastAction;
   /** Tap or swipe sideways to dismiss. Defaults to true. */
   dismissible?: boolean;
+  /** Screen-reader dismiss hint for the default layout. Ignored when not dismissible. */
+  accessibilityHint?: string;
   /** Called when the toast is tapped, before it is dismissed (if dismissible). */
   onPress?: () => void;
   /** Called once the toast has finished animating in. */
@@ -105,6 +107,7 @@ export const Toast: React.FC<ToastProps> = ({
   icon,
   action,
   dismissible = true,
+  accessibilityHint = 'Double tap to dismiss',
   onPress,
   onShow,
   onHide,
@@ -312,7 +315,7 @@ export const Toast: React.FC<ToastProps> = ({
               accessible={!action}
               accessibilityRole="alert"
               accessibilityLiveRegion="polite"
-              accessibilityHint={dismissible ? 'Double tap to dismiss' : undefined}
+              accessibilityHint={dismissible ? accessibilityHint : undefined}
             >
               {iconNode != null ? <View style={styles.icon}>{iconNode}</View> : null}
               <View style={styles.text}>
