@@ -2,7 +2,14 @@
 
 **react-native-toastify-expo** is a lightweight, customizable toast notification library for **React Native** and **Expo** apps. With cross-platform support, smooth animations, and full styling control, it's the easiest way to show success, error, or info toasts in your React Native project.
 
-[![CI](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml/badge.svg)](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml) [![license](https://img.shields.io/npm/l/react-native-toastify-expo.svg)](LICENSE) [![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
+[![npm version](https://img.shields.io/npm/v/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
+[![npm downloads](https://img.shields.io/npm/dm/react-native-toastify-expo.svg)](https://www.npmjs.com/package/react-native-toastify-expo)
+[![CI](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml/badge.svg)](https://github.com/anuj-kumary/react-native-toastify/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/npm/types/react-native-toastify-expo.svg)](src/index.ts)
+[![license](https://img.shields.io/npm/l/react-native-toastify-expo.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/anuj-kumary/react-native-toastify?style=social)](https://github.com/anuj-kumary/react-native-toastify/stargazers)
+[![good first issues](https://img.shields.io/github/issues/anuj-kumary/react-native-toastify/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/anuj-kumary/react-native-toastify/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ▶️ **[Try it live in Expo Snack](https://snack.expo.dev/@git/github.com/anuj-kumary/react-native-toastify:example)**: runs in your browser, or on your phone with Expo Go.
 
@@ -351,7 +358,14 @@ Most apps can switch in a few minutes.
 
 ## Contributing
 
-Contributions are welcome! Please read the [contributing guide](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md) before opening a pull request. Report security issues privately as described in [SECURITY.md](SECURITY.md).
+Contributions are welcome, including your first one!
+
+- **Looking for something to work on?** The [good first issues](https://github.com/anuj-kumary/react-native-toastify/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) are small and well-scoped, and each one lists the files involved and what "done" looks like. Comment on one to take it.
+- **Setup takes a minute:** `npm ci` installs everything, including a pre-commit hook that formats and lint-fixes your changes. The [contributing guide](CONTRIBUTING.md) covers the workflow and code style.
+- **Found a bug or have an idea?** [Open an issue](https://github.com/anuj-kumary/react-native-toastify/issues/new/choose). The forms ask for exactly what's needed.
+- Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report security issues privately as described in [SECURITY.md](SECURITY.md).
+
+If this library saves you time, a ⭐ on GitHub helps other developers find it.
 
 ## Support
 
