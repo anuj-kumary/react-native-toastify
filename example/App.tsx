@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, Modal, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ToastProvider, toast, type ToastProviderProps } from 'react-native-toastify-expo';
+import {
+  ToastHost,
+  ToastProvider,
+  toast,
+  type ToastProviderProps,
+} from 'react-native-toastify-expo';
 
 const fakeRequest = (succeed: boolean) =>
   new Promise<string>((resolve, reject) =>
@@ -26,6 +31,7 @@ function simulateUpload() {
 }
 
 function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }) {
+  const [modalOpen, setModalOpen] = useState(false);
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -139,6 +145,15 @@ function Demo({ theme, onNextTheme }: { theme: string; onNextTheme: () => void }
           onPress={() => toast.error('You are offline', { id: 'network' })}
         />
         <Button title="Update in place" onPress={simulateUpload} />
+        <Button title="Open a Modal" onPress={() => setModalOpen(true)} />
+        <Modal visible={modalOpen} animationType="slide" onRequestClose={() => setModalOpen(false)}>
+          <SafeAreaView style={[styles.screen, styles.content]}>
+            <Text style={styles.heading}>Inside a Modal</Text>
+            <Button title="Show a toast" onPress={() => toast.success('Shown over the Modal')} />
+            <Button title="Close" onPress={() => setModalOpen(false)} />
+            <ToastHost />
+          </SafeAreaView>
+        </Modal>
         <Text style={styles.hint}>Hold a toast to pause its countdown.</Text>
         <Text style={styles.hint}>
           Focus the field, then show a toast: it stays above the keyboard.

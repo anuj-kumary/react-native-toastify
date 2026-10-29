@@ -87,6 +87,13 @@ const fallbackInsets: Insets = {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+type ToastHostRegistry = {
+  register: (id: string) => () => void;
+  active: string | undefined;
+  layer: React.ReactNode;
+};
+const ToastHostContext = createContext<ToastHostRegistry | undefined>(undefined);
+
 export const ToastProvider: React.FC<ToastProviderProps> = ({
   children,
   duration = 3000,
@@ -102,6 +109,9 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   maxWidth = 480,
 }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  // Mounted <ToastHost>s, newest last. The newest one renders the toasts.
+  const [hosts, setHosts] = useState<string[]>([]);
+  const activeHost = hosts[hosts.length - 1];
   const colorScheme = useColorScheme();
   const resolvedTheme: ToastTheme =
     theme === 'system' ? (colorScheme === 'dark' ? 'dark' : 'light') : theme;
@@ -183,6 +193,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     );
   }, []);
 
+  const registerHost = useCallback((id: string) => {
+    setHosts((current) => [...current, id]);
+    return () => setHosts((current) => current.filter((host) => host !== id));
+  }, []);
+
   const removeToast = useCallback((key: string) => {
     setToasts((currentToasts) => currentToasts.filter((t) => t.key !== key));
   }, []);
@@ -218,42 +233,64 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     </View>
   );
 
+  const toastLayer = (
+    <View
+      style={styles.toastContainer}
+      pointerEvents="box-none"
+      testID="toast-layer"
+      onLayout={(e) => setLayer({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height })}
+    >
+      <View
+        style={[styles.stack, { top: insets.top + (offset?.top ?? 10) }]}
+        pointerEvents="box-none"
+        testID="toast-stack-top"
+      >
+        {toasts.filter((toast) => toast.position === 'top').map(renderToast)}
+      </View>
+      <View
+        // While the keyboard is open it covers the bottom inset, so only the overlap counts.
+        style={[
+          styles.stack,
+          styles.bottomStack,
+          {
+            bottom:
+              (keyboardTop === null ? insets.bottom : keyboardOverlap) + (offset?.bottom ?? 20),
+          },
+        ]}
+        pointerEvents="box-none"
+        testID="toast-stack-bottom"
+      >
+        {toasts.filter((toast) => toast.position === 'bottom').map(renderToast)}
+      </View>
+    </View>
+  );
+
   return (
     <ToastContext.Provider value={{ showToast, updateToast, hideToast, hideAll }}>
-      {children}
-      <View
-        style={styles.toastContainer}
-        pointerEvents="box-none"
-        testID="toast-layer"
-        onLayout={(e) =>
-          setLayer({ y: e.nativeEvent.layout.y, height: e.nativeEvent.layout.height })
-        }
+      <ToastHostContext.Provider
+        value={{ register: registerHost, active: activeHost, layer: toastLayer }}
       >
-        <View
-          style={[styles.stack, { top: insets.top + (offset?.top ?? 10) }]}
-          pointerEvents="box-none"
-          testID="toast-stack-top"
-        >
-          {toasts.filter((toast) => toast.position === 'top').map(renderToast)}
-        </View>
-        <View
-          // While the keyboard is open it covers the bottom inset, so only the overlap counts.
-          style={[
-            styles.stack,
-            styles.bottomStack,
-            {
-              bottom:
-                (keyboardTop === null ? insets.bottom : keyboardOverlap) + (offset?.bottom ?? 20),
-            },
-          ]}
-          pointerEvents="box-none"
-          testID="toast-stack-bottom"
-        >
-          {toasts.filter((toast) => toast.position === 'bottom').map(renderToast)}
-        </View>
-      </View>
+        {children}
+      </ToastHostContext.Provider>
+      {activeHost ? null : toastLayer}
     </ToastContext.Provider>
   );
+};
+
+/**
+ * Shows toasts here instead of at the app root while it is mounted. A React Native <Modal> covers
+ * everything outside it, so render this as the last child of the Modal's content.
+ */
+// ponytail: toasts already on screen remount here, so their animation and countdown restart.
+export const ToastHost: React.FC = () => {
+  const host = useContext(ToastHostContext);
+  const [id] = useState(randomId);
+  const register = host?.register;
+  useEffect(() => register?.(id), [register, id]);
+  if (!host) {
+    throw new Error('ToastHost must be used within a ToastProvider');
+  }
+  return host.active === id ? <>{host.layer}</> : null;
 };
 
 const styles = StyleSheet.create({
