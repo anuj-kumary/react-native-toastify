@@ -18,10 +18,13 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-      # Trusted publishing (OIDC) needs npm >= 11.5.1
+      # Staged publishing through trusted publishing (OIDC) needs npm >= 11.15.
       - run: npm install -g npm@11
       - run: npm ci
-      - run: npm publish --provenance --access public --loglevel verbose
+      - run: npm run build
+      # Uploads the version to npm's staging area. It goes live only after a maintainer approves it
+      # with 2FA on npmjs.com (package -> Staged Packages) or with `npm stage approve <id>`.
+      - run: npm stage publish --provenance --access public --loglevel verbose
 
   # Mirror to GitHub Packages so the repo's Packages sidebar shows the current version.
   # GitHub Packages only accepts scoped names, so the name is rewritten for this publish only.
