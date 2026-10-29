@@ -1,0 +1,24 @@
+name: 📚 Documentation
+description: Something in the README or docs is wrong, missing or unclear
+title: '[Docs]: '
+labels: [documentation]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Where?
+      description: The README section, or a link to the line.
+      placeholder: README → API → Toast options
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording
+      description: Optional. Pull requests for docs fixes are very welcome too.

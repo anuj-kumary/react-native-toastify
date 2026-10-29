@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Report a security vulnerability
+  - name: 📖 Documentation
+    url: https://github.com/anuj-kumary/react-native-toastify#readme
+    about: API reference, examples and the migration guide from react-native-toast-message.
+  - name: ▶️ Try it in Expo Snack
+    url: https://snack.expo.dev/@git/github.com/anuj-kumary/react-native-toastify:example
+    about: A live demo of every feature. Fork it to reproduce a bug.
+  - name: 🔒 Report a security vulnerability
     url: https://github.com/anuj-kumary/react-native-toastify/security/advisories/new
     about: Please report security issues privately, not as a public issue.

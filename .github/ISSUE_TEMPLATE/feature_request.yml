@@ -1,12 +1,48 @@
-name: Feature request
-description: Suggest an idea
+name: ✨ Feature request
+description: Suggest a new feature or an improvement
+title: '[Feature]: '
 labels: [enhancement]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please check the [README API section](https://github.com/anuj-kumary/react-native-toastify#-api) first, since it may already be possible.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you start
+      options:
+        - label: I searched the [existing issues](https://github.com/anuj-kumary/react-native-toastify/issues?q=is%3Aissue) and this hasn't been requested.
+          required: true
   - type: textarea
+    id: problem
     attributes:
       label: What problem would this solve?
+      description: Describe the situation in your app, not the solution yet.
+      placeholder: I show a toast after every failed request, and when the network drops I get five identical toasts.
     validations:
       required: true
   - type: textarea
+    id: proposal
     attributes:
-      label: Proposed solution
+      label: How would you like it to work?
+      description: Show how you'd like to call it, if you can.
+      render: tsx
+      placeholder: "toast.error('You are offline', { id: 'network' });"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Workarounds you use today, or how other libraries handle it.
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you like to help build it?
+      options:
+        - Yes, I'd like to open a pull request
+        - Maybe, with some guidance
+        - No
+    validations:
+      required: true
