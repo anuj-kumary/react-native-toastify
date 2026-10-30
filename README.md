@@ -41,6 +41,7 @@
 - 🧩 **Custom types and layouts**: register your own types (`toast.show({ type: 'upload' })`), or render toasts however you like
 - 🔔 **Callbacks**: `onPress`, `onShow` and `onHide`
 - ⏱️ **Progress bar** counting down to auto-dismiss
+- 🪟 **Works over Modals**: add `<ToastHost />` inside a `<Modal>` and toasts show on top of it
 - ⌨️ **Keyboard-aware**: bottom toasts move above the keyboard
 - ⚙️ **Provider defaults**: set duration, position, max visible toasts, offsets and styles once
 - 📐 **Safe-area aware**: clears the notch and the home indicator
@@ -149,6 +150,10 @@ Works anywhere in your app once a `ToastProvider` is mounted: in components, API
 
 Returns `{ showToast, updateToast, hideToast, hideAll }`. `showToast(options)` returns the toast's id. The 1.1 shorthand `showToast(message, type?, duration?, position?)` still works. `useToast` throws if it's used outside `ToastProvider`.
 
+### `<ToastHost />`
+
+A React Native `<Modal>` covers everything outside it, including toasts shown at the app root. Render `<ToastHost />` as the last child of the Modal's content, and toasts show inside the Modal while it's open. When several hosts are mounted, the newest one shows the toasts. When it unmounts, toasts go back to the previous host or the app root. It takes no props.
+
 ## 🎨 Examples
 
 ### Promise toast
@@ -211,6 +216,22 @@ const id = toast.info('Uploading… 0%', { duration: Infinity });
 upload.onProgress((p) => toast.update(id, { message: `Uploading… ${p}%` }));
 upload.onDone(() => toast.update(id, { message: 'Upload complete', type: 'success', duration: 3000 }));
 ```
+
+### Toasts over a Modal
+
+```tsx
+import { Modal, View } from 'react-native';
+import { toast, ToastHost } from 'react-native-toastify-expo';
+
+<Modal visible={open} onRequestClose={close}>
+  <View style={{ flex: 1 }}>
+    <EditProfileForm onSave={() => toast.success('Profile saved')} />
+    <ToastHost />
+  </View>
+</Modal>;
+```
+
+Without `<ToastHost />`, the toast would show behind the Modal. A toast already on screen when the Modal opens moves into it and replays its entrance.
 
 ### Themes
 
@@ -297,6 +318,7 @@ These are the colors in the default `'colored'` theme. Text is white at 16px. Th
 | Progress bar | ✅ `showProgress` | ❌ |
 | Screen-reader announcements | ✅ VoiceOver and TalkBack | ❌ |
 | Safe-area insets (notch, home indicator) | ✅ automatic | Manual `topOffset` / `bottomOffset` |
+| Toasts over a `<Modal>` | ✅ one `<ToastHost />`, no extra config | A second `<Toast />` with its own config |
 | Swipe to dismiss | ✅ | ✅ |
 | Keyboard avoidance | ✅ | ✅ |
 | `onPress` / `onShow` / `onHide` callbacks | ✅ | ✅ |

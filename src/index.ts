@@ -9,7 +9,7 @@ export type {
   ToastTypeStyle,
   ToastRenderInfo,
 } from './components/Toast/Toast';
-export { ToastProvider, useToast } from './context/ToastContext';
+export { ToastHost, ToastProvider, useToast } from './context/ToastContext';
 export type { ToastProviderProps } from './context/ToastContext';
 export { toast } from './toast';
 export type { ToastConfig, ToastOptions } from './toast';
